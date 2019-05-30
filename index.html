@@ -28,7 +28,7 @@
         </div>
     </div>
     <div class='scroll__text'>
-        <div class='step' data-step='1'>
+        <div id="bin1" class='step' data-step='1'>
             <p>STEP 1</p>
         </div>
         <div class='step' data-step='2'>
@@ -84,7 +84,44 @@
             return i === response.index;
         })
         // update graphic based on step
+        
         chart.select('p').text(response.index + 1)
+        if (response.index == 0) {
+            var data = [[5,3], [10,17], [15,4], [2,8]];
+        
+            var margin = {top: 20, right: 15, bottom: 60, left: 60}
+            , width = 960 - margin.left - margin.right
+            , height = 500 - margin.top - margin.bottom;
+            
+            var x = d3.scaleLinear()
+                    .domain([0, d3.max(data, function(d) { return d[0]; })])
+                    .range([ 0, width ]);
+            
+            var y = d3.scaleLinear()
+                    .domain([0, d3.max(data, function(d) { return d[1]; })])
+                    .range([ height, 0 ]);
+        
+            var chart1 = chart.select('p')
+            .append('svg:svg')
+            .attr('width', width + margin.right + margin.left)
+            .attr('height', height + margin.top + margin.bottom)
+            .attr('class', 'chart')
+
+            var main = chart1.append('g')
+            .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
+            .attr('width', width)
+            .attr('height', height)
+            .attr('class', 'main')   
+
+            var g = main.append("svg:g"); 
+    
+            g.selectAll("scatter-dots")
+            .data(data)
+            .enter().append("svg:circle")
+                .attr("cx", function (d,i) { return x(d[0]); } )
+                .attr("cy", function (d) { return y(d[1]); } )
+                .attr("r", 8);
+        }
     }
     function handleContainerEnter(response) {
         // response = { direction }
@@ -119,6 +156,8 @@
     }
     // kick things off
     init();
+    var bin1 = step.select("#bin1")
+    bin1.html("text here")
 </script>
 </body>
 
