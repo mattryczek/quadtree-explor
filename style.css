@@ -84,6 +84,8 @@ a:hover {
     -moz-transform: translateY(-50%);
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
+}
+.chart_data{
     background-color: #ddd;
     border: 1px solid #000;
 }

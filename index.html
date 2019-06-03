@@ -24,6 +24,7 @@
 <section id='scroll'>
     <div class='scroll__graphic'>
         <div class='chart'>
+            <svg></svg>
             <p>0</p>
         </div>
     </div>
@@ -87,31 +88,34 @@
         
         chart.select('p').text(response.index + 1)
         if (response.index == 0) {
-            var data = [[5,3], [10,17], [15,4], [2,8]];
-        
+            var data = [[.4,.5], [1.2,.5]];
+
             var margin = {top: 20, right: 15, bottom: 60, left: 60}
-            , width = 960 - margin.left - margin.right
-            , height = 500 - margin.top - margin.bottom;
-            
+
+            var width = chart.node().getBoundingClientRect().width;
+            var height = chart.node().getBoundingClientRect().height;
+            console.log(width)
+
             var x = d3.scaleLinear()
-                    .domain([0, d3.max(data, function(d) { return d[0]; })])
+                    .domain([0, 2])//d3.max(data, function(d) { return d[0]; })])
                     .range([ 0, width ]);
             
             var y = d3.scaleLinear()
-                    .domain([0, d3.max(data, function(d) { return d[1]; })])
+                    .domain([0, 1])//d3.max(data, function(d) { return d[1]; })])
                     .range([ height, 0 ]);
         
-            var chart1 = chart.select('p')
-            .append('svg:svg')
-            .attr('width', width + margin.right + margin.left)
-            .attr('height', height + margin.top + margin.bottom)
-            .attr('class', 'chart')
+            var chart1 = chart
+                .select('svg')
+                .attr('class', 'chart_data')
+                .attr('transform', 'translate(0,0)')
+            .attr('width', width )
+            .attr('height',height )
 
             var main = chart1.append('g')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
             .attr('width', width)
             .attr('height', height)
-            .attr('class', 'main')   
+            .attr('class', 'main')
 
             var g = main.append("svg:g"); 
     
