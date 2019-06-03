@@ -94,24 +94,32 @@
         var svg;
         var main;
         var g;
+        var path;
         if(entered === 0){
             margin = {top: 20, right: 15, bottom: 60, left: 60}
 
             width = chart.node().getBoundingClientRect().width;
             height = chart.node().getBoundingClientRect().height;
-
+            var path_data = [[4, 5], [12, 5]]
             svg = chart
                 .select('svg')
                 .attr('class', 'chart_data')
-          //      .attr('transform', 'translate(0,0)')
                 .attr('width', width )
                 .attr('height',height );
+            let line = d3.line()
+                .x(function(d) { return d[0]; })
+                .y(function(d) { return d[1]; });
             main = svg.append('g')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
                 .attr('width', width)
                 .attr('height', height)
                 .attr('class', 'main');
             g = main.append("svg:g").attr("class", "data_points");
+
+             g.append('path')
+                 .attr('d', line(path_data))
+                 .attr("class", "primary_path");
+
             entered = 1;
         }else{
              margin = {top: 20, right: 15, bottom: 60, left: 60}
@@ -122,6 +130,7 @@
                 .select('svg')
              main = svg.select('g');
              g = main.select(".data_points");//.attr("class", "data_points");
+            path = svg.select('path');
         }
 
         // response = { element, direction, index }
@@ -131,7 +140,8 @@
         })
         ////////////////////////////////////////////
         if (response.index === 0) {
-            small_array = [[4, 5], [12, 5]];
+            small_array = [[2, 5], [12, 5]];
+            let other_array = [[2, 5], [2, 5]]
 
             var x = d3.scaleLinear()
                 .domain([0, 20])//d3.max(data, function(d) { return d[0]; })])
@@ -141,9 +151,19 @@
                 .domain([0, 10])//d3.max(data, function(d) { return d[1]; })])
                 .range([height, 0]);
 
+            let line = d3.line()
+                .x(function(d) { console.log(x(d[0]));return x(d[0]); })
+                .y(function(d) { console.log(y(d[1]));return y(d[1]); });
+            g.selectAll("path")
+                .attr("d", line(other_array))
+                .style("stroke", "black")
+                .style("stroke-width", "5");
+
             g.selectAll(".scatter-dots")
                 .data(small_array)
                 .enter().append("circle")
+                .attr('fill','blue')
+                .attr('stroke','black')
                 .attr("class", "scatter-dots")
                 .attr("cx", function (d, i) {
                     return x(d[0]);
@@ -161,16 +181,66 @@
                     return y(d[1]);
                 })
                 .attr("r", 40);
+
         }
 
-        if (response.index === 1) {
+        if(response.index === 1){
+            searchFirst(g);
+        }
+
+        if (response.index === 2) {
             collideTwoDots(g);
         }
-        if(response.index === 2){
+        if(response.index === 3){
             expandGraph(g);
         }
     }
-    function collideTwoDots(g){
+    async function searchFirst(g){
+        console.log(small_array)
+        var width = chart.node().getBoundingClientRect().width;
+        var height = chart.node().getBoundingClientRect().height;
+        var x = d3.scaleLinear()
+            .domain([0, 20])//d3.max(data, function(d) { return d[0]; })])
+            .range([0, width]);
+
+        var y = d3.scaleLinear()
+            .domain([0, 10])//d3.max(data, function(d) { return d[1]; })])
+            .range([height, 0]);
+
+        let temp_data = [[6, 5], [12, 5]];
+        let temp_path_data = [[6, 5], [6, 5]];
+        let line = d3.line()
+            .x(function(d) { console.log(x(d[0]));return x(d[0]); })
+            .y(function(d) { console.log(y(d[1]));return y(d[1]); });
+        //  g.selectAll("path");
+          g.selectAll(".scatter-dots")
+            .data(temp_data);
+        g.selectAll(".scatter-dots").transition()
+            .duration(1000)
+            .attr("cx", function (d) {
+                return x(d[0]);
+            })
+            .attr("cy", function (d) {
+                return y(d[1]);
+            });
+        g.selectAll("path")
+            .transition()
+            .duration(1000)
+            .attr("d", line(temp_path_data));
+        await sleep(1200);
+        g.selectAll("path")
+            .transition()
+            .duration(1200)
+            .attr("d", line(temp_data));
+        await sleep(1300);
+        g.selectAll("path")
+            .transition()
+            .duration(1200)
+            .style("stroke", "green")
+
+    }
+
+    async function collideTwoDots(g){
         console.log("transition")
         small_array[0] = [11, 5];
         small_array[1] = [12, 5];
@@ -187,6 +257,10 @@
         var y = d3.scaleLinear()
             .domain([0, 10])//d3.max(data, function(d) { return d[1]; })])
             .range([ height, 0 ]);
+
+        let line = d3.line()
+            .x(function(d) { console.log(x(d[0]));return x(d[0]); })
+            .y(function(d) { console.log(y(d[1]));return y(d[1]); });
 
         var dots = g.selectAll(".scatter-dots")
             .data(small_array);
@@ -215,8 +289,18 @@
             .attr("cy", function (d) { return y(d[1]); } )
             .attr("r", 40);
 
-    }
+        g.selectAll("path")
+            .style("opacity",0);
 
+        await sleep(1400)
+        dots.transition()
+            .duration(1000)
+            .style("fill", "red");
+
+    }
+    function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
     function expandGraph(g){
         console.log("transition")
 
@@ -239,23 +323,24 @@
             .data(big_array);
         console.log(dots.exit())
 
-        let mycolor = d3.rgb(199, 13, 13);
+        let mycolor = d3.rgb(13, 13, 185);
         let mycolor2 = d3.rgb(0, 0, 0);
 
         dots.transition()
             .duration(1000)
-            .attr("cx", function (d) { console.log(x(d[0])); return x(d[0]); } )
-            .attr("cy", function (d) { console.log(y(d[0])); return y(d[1]); } )
+            .attr("cx", function (d) { return x(d[0]); } )
+            .attr("cy", function (d) {  return y(d[1]); } )
             .style("fill", mycolor)
             .attr("r", 4);
 
         dots2.transition()
             .duration(1000)
-            .attr("cx", function (d) { console.log(x(d[0])); return x(d[0]); } )
-            .attr("cy", function (d) { console.log(y(d[0])); return y(d[1]); } )
+            .attr("cx", function (d) {return x(d[0]); } )
+            .attr("cy", function (d) {return y(d[1]); } )
             .style("fill", mycolor2)
             .attr("r", 4)
             .style("opacity", 1);
+
 
     }
 
