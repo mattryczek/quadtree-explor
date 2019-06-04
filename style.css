@@ -20,23 +20,37 @@ p, h1 {
 #intro {
     /*max-width: 40rem;
     margin: 1rem auto;*/
-    width: 75%;
     margin: 20px;
     text-align: left;
-    height: 400px;
+    height: 550px;
+}
+
+.intro__info {
+    width: 100%;
 }
 
 .intro__title {
     font-weight: 600;
+    font-size: 2.5rem;
 }
 
 .intro__text {
     font-size: 1.4rem;
     word-spacing: 2px;
+    display: inline-block;
+    width: 45%;
+    vertical-align: middle;
+    margin-top: 20px;
+}
+
+.intro__img {
+    margin-left: 80px;
 }
 /* demo */
 #outro {
-    height: 640px;
+    height: 100%;
+    border: 1px solid black;
+    margin: 20px;
 }
 /* scrollama */
 #scroll {
