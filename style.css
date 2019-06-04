@@ -48,7 +48,9 @@ p, h1 {
 }
 /* demo */
 #outro {
-    height: 640px;
+    height: 100%;
+    border: 1px solid black;
+    margin: 20px;
 }
 /* scrollama */
 #scroll {
