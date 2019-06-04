@@ -42,15 +42,18 @@
             <p>STEP 4</p>
         </div>
         <div class='step' data-step='5'>
-        <p>STEP 5</p>
-        </div>
-        <div class='step' data-step='5'>
             <p>STEP 5</p>
+        </div>
+        <div class='step' data-step='6'>
+            <p>STEP 6</p>
         </div>
     </div>
 </section>
-<section id='outro'></section>
-<div class='debug'></div>
+<section id='outro'>
+    <svg class="quadtree">
+
+    </svg>
+</section>
 <script src='https://d3js.org/d3.v4.min.js'></script>
 <script src='https://unpkg.com/intersection-observer'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/scrollama/1.4.1/scrollama.min.js'></script>
@@ -128,7 +131,7 @@
              width = chart.node().getBoundingClientRect().width;
              height = chart.node().getBoundingClientRect().height;
              svg = chart
-                .select('svg')
+                .select('svg');
              main = svg.select('g');
              g = main.select(".data_points");//.attr("class", "data_points");
             path = svg.select('path');
@@ -138,7 +141,7 @@
         // add color to current step only
         step.classed('is-active', function (d, i) {
             return i === response.index;
-        })
+        });
         ////////////////////////////////////////////
         if (response.index === 0) {
             small_array = [[2, 5], [12, 5]];
@@ -287,7 +290,8 @@
         g.selectAll("path")
             .style("opacity",0);
 
-        await sleep(800)
+        await sleep(800);
+
         dots.transition()
             .duration(1000)
             .style("fill", "red");
@@ -336,8 +340,6 @@
 
         await sleep(2000);
 
-
-
         for(var i = 0; i < 300; i++){
             big_array[i] = [Math.random()*100 - 50, Math.random()*100 - 50];
         }
@@ -376,17 +378,13 @@
                 .transition()
                 .duration(300)
                 .attr("d", line(other_array));
-            await sleep(600)
+            await sleep(600);
             other_array[1] =other_array[0];
             g.selectAll("path")
                 .transition()
                 .duration(300)
                 .attr("d", line(other_array));
-
         }
-
-
-
     }
 
     function handleContainerEnter(response) {
@@ -400,6 +398,109 @@
         // un-sticky the graphic, and pin to top/bottom of container
         graphic.classed('is-fixed', false);
         graphic.classed('is-bottom', response.direction === 'down');
+
+        let w = window.innerWidth,
+            h = window.innerHeight,
+            margin = { top: 40, right: 20, bottom: 20, left: 40 },
+            radius = 6;
+
+        let svg = d3.select(".quadtree")
+            .attr("width", w)
+            .attr("height", h);
+
+        var dataset = [
+            { x: 100, y: 110 },
+            { x: 83, y: 43 },
+            { x: 92, y: 28 },
+            { x: 49, y: 74 },
+            { x: 51, y: 10 },
+            { x: 25, y: 98 },
+            { x: 77, y: 30 },
+            { x: 20, y: 83 },
+            { x: 11, y: 63 },
+            { x:  4, y: 55 },
+            { x:  0, y:  0 },
+            { x: 85, y: 100 },
+            { x: 60, y: 40 },
+            { x: 70, y: 80 },
+            { x: 10, y: 20 },
+            { x: 40, y: 50 },
+            { x: 25, y: 31 }
+        ];
+
+        // We're passing in a function in d3.max to tell it what we're maxing (x value)
+        var xScale = d3.scaleLinear()
+            .domain([0, d3.max(dataset, function (d) { return d.x + 10; })])
+            .range([margin.left, w - margin.right]);  // Set margins for x specific
+
+        // We're passing in a function in d3.max to tell it what we're maxing (y value)
+        var yScale = d3.scaleLinear()
+            .domain([0, d3.max(dataset, function (d) { return d.y + 10; })])
+            .range([margin.top, h - margin.bottom]);  // Set margins for y specific
+
+        // Add a X and Y Axis (Note: orient means the direction that ticks go, not position)
+        var xAxis = d3.axisTop().scale(xScale);
+        var yAxis = d3.axisLeft().scale(yScale);
+
+        svg.selectAll("circle")
+            .data(dataset)
+            .enter()
+            .append("circle")
+            .attr("cx", function(d) { return xScale(d.x); },)
+            .attr("cy", function(d) { return yScale(d.y); },)// Get attributes from circleAttrs var
+            .attr("r", radius)
+            .on("mouseover", handleMouseOver)
+            .on("mouseout", handleMouseOut);
+
+        // On Click, we want to add data to the array and chart
+        svg.on("click", function() {
+            let coords = d3.mouse(this);
+
+            // Normally we go from data to pixels, but here we're doing pixels to data
+            let newData= {
+                x: Math.round( xScale.invert(coords[0])),  // Takes the pixel number to convert to number
+                y: Math.round( yScale.invert(coords[1]))
+            };
+
+            dataset.push(newData);   // Push data to our array
+
+            svg.selectAll("circle")  // For new circle, go through the update process
+                .data(dataset)
+                .enter()
+                .append("circle")
+                .attr("cx", function(d) { return xScale(d.x); })
+                .attr("cy", function(d) { return yScale(d.y); })// Get attributes from circleAttrs var
+                .attr("r", radius)
+                .on("mouseover", handleMouseOver)
+                .on("mouseout", handleMouseOut);
+        });
+
+        // Create Event Handlers for mouse
+        function handleMouseOver(d, i) {  // Add interactivity
+
+
+            // Use D3 to select element, change color and size
+            d3.select(this)
+                .style("fill", "steelblue")
+                .attr("r", radius * 2);
+
+            // Specify where to put label of text
+            svg.append("text")
+                .attr("id", "t" + d.x + "-" + d.y + "-" + i)  // Create an id for text so we can select it later for removing on mouseout
+                .attr("x",  function() { return xScale(d.x) - 30;})
+                .attr("y", function() { return yScale(d.y) - 15; })
+                .text(function() { return [d.x, d.y] }); // Value of the text
+        }
+
+        function handleMouseOut(d, i) {
+            // Use D3 to select element, change color back to normal
+            d3.select(this)
+                .style("fill", "black")
+                .attr("r", radius);
+
+            // Select text by id and then remove
+            d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
+        }
     }
     function init() {
         // 1. force a resize on load to ensure proper dimensions are sent to scrollama
