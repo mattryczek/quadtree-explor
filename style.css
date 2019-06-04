@@ -23,7 +23,7 @@ p, h1 {
     width: 75%;
     margin: 20px;
     text-align: left;
-    height: 340px;
+    height: 400px;
 }
 
 .intro__title {
@@ -61,8 +61,8 @@ p, h1 {
 }
 .chart {
     position: absolute;
-    right: 1.5rem;
-    top: 25%;
+    right: 2.5rem;
+    top: 40%;
     -moz-transform: translateY(-50%);
     -webkit-transform: translateY(-50%);
     transform: translateY(-50%);
@@ -92,13 +92,24 @@ p, h1 {
 }
 .step {
     margin-left: 20px;
-    /*border: 1px solid #333;*/
+    margin-top: 50px;
+    margin-bottom: 50px;
+}
+
+.step {
+    visibility: hidden;
 }
 .step.is-active {
-    /*background-color: lightblue;*/
+    visibility: visible;
 }
 .step__title {
     text-align: left;
     /*padding: 1rem;*/
     font-size: 1.5rem;
+}
+
+.step__text {
+    text-align: left;
+    font-size: 1.2rem;
+    padding-right: 50px;
 }

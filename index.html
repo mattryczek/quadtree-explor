@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Scrollama Demo: Fixed CSS</title>
+    <title>Quadtrees for Collision Detection Performance</title>
     <meta name="description" content="Quadtrees for Collision Detection">
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
@@ -13,16 +13,16 @@
 
 <body>
 <div id='intro'>
-    <h1 class="intro__title">Quadtrees for Collision Detection</h1>
+    <h1 class="intro__title">Quadtrees for Collision Detection Performance</h1>
     <br>
     <p class='intro__text'>
-        Most video games rely on some form of object collision detection in order to implement
-        essential gameplay mechanics. The problem with existing detection algorithms is scale.
-        In many video games, large environments can contain thousands of objects, all of which
-        the player can interact with. Because of this, checking all pairs of objects for collisions 
-        can quickly become expensive. To help limit the cost of detection, developers can implement
-        quadtrees, a data structure that cuts down on checking improbable collisions. Continue scrolling
-        for an illustrated breakdown of quadtrees and their use.
+        Most video games rely on some kind of collision detection algorithm in order to implement
+        essential gameplay mechanics. Regardless of the chosen algorithm, the problem with existing
+        implementation is scale. In many video games, large environments can contain thousands of objects that
+        the player can interact with. Currently, the best way to limit computational cost is to decrease the
+        number of times the algorithm is run. In order to do this, developers utilize quadtrees,
+        a data structure that eliminates checks for impropable collisions.Continue scrolling for an illustrated
+        breakdown of quadtrees and their use.
     </p>
 </div>
 <section id='scroll'>
@@ -34,19 +34,55 @@
     </div>
     <div class='scroll__text'>
         <div class='step' data-step='1'>
-            <p class='step__title'>Detecting Collisions</p>
+            <p class='step__title'>Small Scale Detection</p>
+            <br>
+            <p class='step__text'>
+                Game engines must be able to update a game's state depending on object interaction
+                (or lack thereof), requiring frequent checks for collisions. In this case, we see two 
+                objects that don't collide. We use our detection algorithm (shown
+                here as a line drawn between objects) to verify this.
+            </p>
         </div>
         <div class='step' data-step='2'>
-            <p class='step__title'>STEP 2</p>
+            <p class='step__text'>
+                Now, we see two objects that do collide. In this case, detection is trivial, 
+                as we're only dealing with two objects. </p> 
+                <br><br><br>
+            <p class='step__text'>
+                Let's look at what happens 
+                with<br> <input type="number" name="numObj" value="300" max="1000" min="2"> objects...
+            </p>
         </div>
         <div class='step' data-step='3'>
-            <p class='step__title'>STEP 3</p>
+            <p class='step__title'>Large Scale Detection</p>
+            <br>
+            <p class="step__text">
+                When we have a large number of objects, checking for collisions
+                using our current method becomes much more expensive. Users expect
+                fluid gameplay, free of constant delays. Although the detection algorithm
+                may be completed quickly, performing this computation for all pairs of objects
+                has a cost that increases exponentially with the number of objects.
+            </p>
         </div>
         <div class='step' data-step='4'>
-            <p class='step__title'>STEP 4</p>
+            <p class='step__title'>Dividing Space to Build a Quadtree</p>
+            <br>
+            <p class='step__text'>
+                How can we cut down on object
+                comparisons? Consider the probability that two objects
+                collide. This probability is not uniform between all objects - some 
+                have a much lower chance of colliding than others. The use of quadtrees
+                relies on a simple intuition: objects that are near one another are more likely
+                to have collided. To check objects against their neighbors, we first have to 
+                figure out which objects are close to each other.
+                <br><br>
+                In order to create our tree, we recursively divide our 2D space into equally 
+                sized quadrants, until each quadrant contains at least one and at most four
+                objects.
+            </p>
         </div>
         <div class='step' data-step='5'>
-        <p class='step__title'>STEP 5</p>
+        <p class='step__title'>Visualizing the Tree</p>
     </div>
     </div>
 </section>
@@ -65,7 +101,7 @@
     var step = text.selectAll('.step');
     var entered = 0;
 
-    var big_array = new Array(1000);
+    var big_array = new Array(300);
     var small_array = new Array(2);
 
     // initialize the scrollama
@@ -73,7 +109,7 @@
     // generic window resize listener event
     function handleResize() {
         // 1. update height of step elements
-        var stepHeight = Math.floor(window.innerHeight * 0.75);
+        var stepHeight = Math.floor(window.innerHeight * 0.6);
         step.style('height', stepHeight + 'px');
         // 2. update width/height of graphic element
         var bodyWidth = d3.select('body').node().offsetWidth;
@@ -91,7 +127,6 @@
     }
     // scrollama event handlers
     function handleStepEnter(response) {
-        console.log("entering step");
         var margin;
         var width;
         var height;
@@ -114,7 +149,6 @@
                 .x(function(d) { return d[0]; })
                 .y(function(d) { return d[1]; });
             main = svg.append('g')
-                .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
                 .attr('width', width)
                 .attr('height', height)
                 .attr('class', 'main');
@@ -145,7 +179,7 @@
         ////////////////////////////////////////////
         if (response.index === 0) {
             small_array = [[2, 5], [12, 5]];
-            let other_array = [[2, 5], [2, 5]]
+            let other_array = [[2, 5], [2, 5]];
 
             var x = d3.scaleLinear()
                 .domain([0, 20])//d3.max(data, function(d) { return d[0]; })])
@@ -156,8 +190,8 @@
                 .range([height, 0]);
 
             let line = d3.line()
-                .x(function(d) { console.log(x(d[0]));return x(d[0]); })
-                .y(function(d) { console.log(y(d[1]));return y(d[1]); });
+                .x(function(d) { return x(d[0]); })
+                .y(function(d) { return y(d[1]); });
             g.selectAll("path")
                 .attr("d", line(other_array))
                 .style("stroke", "black")
@@ -186,21 +220,17 @@
                 })
                 .attr("r", 40);
 
-        }
-
-        if(response.index === 1){
             searchFirst(g);
         }
 
-        if (response.index === 2) {
+        if (response.index === 1) {
             collideTwoDots(g);
         }
-        if(response.index === 3){
+        if(response.index === 2){
             expandGraph(g);
         }
     }
     async function searchFirst(g){
-        console.log(small_array)
         var width = chart.node().getBoundingClientRect().width;
         var height = chart.node().getBoundingClientRect().height;
         var x = d3.scaleLinear()
@@ -214,10 +244,10 @@
         let temp_data = [[6, 5], [12, 5]];
         let temp_path_data = [[6, 5], [6, 5]];
         let line = d3.line()
-            .x(function(d) { console.log(x(d[0]));return x(d[0]); })
-            .y(function(d) { console.log(y(d[1]));return y(d[1]); });
-        //  g.selectAll("path");
-          g.selectAll(".scatter-dots")
+            .x(function(d) { return x(d[0]); })
+            .y(function(d) { return y(d[1]); });
+
+        g.selectAll(".scatter-dots")
             .data(temp_data);
         g.selectAll(".scatter-dots").transition()
             .duration(1000)
@@ -231,24 +261,23 @@
             .transition()
             .duration(1000)
             .attr("d", line(temp_path_data));
-        await sleep(1200);
+        await sleep(800);
         g.selectAll("path")
             .transition()
             .duration(1200)
             .attr("d", line(temp_data));
-        await sleep(1300);
+        await sleep(1000);
         g.selectAll("path")
             .transition()
-            .duration(1200)
-            .style("stroke", "green")
+            .duration(800)
+            .style("stroke", "#32CD32")
 
     }
 
     async function collideTwoDots(g){
-        console.log("transition")
         small_array[0] = [11, 5];
         small_array[1] = [12, 5];
-        for(var i = 0; i < 1000; i++){
+        for(var i = 0; i < 300; i++){
             big_array[i] = [Math.random()*100 - 50, Math.random()*100 - 50];
         }
         var width = chart.node().getBoundingClientRect().width;
@@ -263,12 +292,11 @@
             .range([ height, 0 ]);
 
         let line = d3.line()
-            .x(function(d) { console.log(x(d[0]));return x(d[0]); })
-            .y(function(d) { console.log(y(d[1]));return y(d[1]); });
+            .x(function(d) { return x(d[0]); })
+            .y(function(d) { return y(d[1]); });
 
         var dots = g.selectAll(".scatter-dots")
             .data(small_array);
-        console.log(dots.exit())
         dots.exit().remove();
 
         g.selectAll(".many-scatter-dots")
@@ -296,7 +324,7 @@
         g.selectAll("path")
             .style("opacity",0);
 
-        await sleep(1400)
+        await sleep(800)
         dots.transition()
             .duration(1000)
             .style("fill", "red");
@@ -305,11 +333,10 @@
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
-    function expandGraph(g){
-        console.log("transition")
+    async function expandGraph(g){
 
-        small_array[0] = [7, 5];
-        small_array[1] = [12, 5];
+  //      small_array[0] = [7, 5];
+    //    small_array[1] = [12, 5];
         var width = chart.node().getBoundingClientRect().width;
         var height = chart.node().getBoundingClientRect().height;
 
@@ -325,7 +352,6 @@
             .data(small_array);
         var dots2 = g.selectAll(".many-scatter-dots")
             .data(big_array);
-        console.log(dots.exit())
 
         let mycolor = d3.rgb(13, 13, 185);
         let mycolor2 = d3.rgb(0, 0, 0);
@@ -334,7 +360,7 @@
             .duration(1000)
             .attr("cx", function (d) { return x(d[0]); } )
             .attr("cy", function (d) {  return y(d[1]); } )
-            .style("fill", mycolor)
+    //        .style("fill", mycolor)
             .attr("r", 4);
 
         dots2.transition()
@@ -344,6 +370,58 @@
             .style("fill", mycolor2)
             .attr("r", 4)
             .style("opacity", 1);
+
+        await sleep(2000);
+
+
+
+        for(var i = 0; i < 300; i++){
+            big_array[i] = [Math.random()*100 - 50, Math.random()*100 - 50];
+        }
+
+        small_array[0] = [Math.random()*100 - 50, Math.random()*100 - 50];
+        small_array[1] = [Math.random()*100 - 50, Math.random()*100 - 50];
+
+        let line = d3.line()
+            .x(function(d) { return x(d[0]); })
+            .y(function(d) { return y(d[1]); });
+        let other_array = [small_array[0], small_array[0]];
+        g.selectAll("path")
+            .attr("d", line(other_array))
+            .style("stroke", "gray")
+            .style("stroke-width", "2")
+            .style("opacity", "1");
+
+        dots = g.selectAll(".scatter-dots")
+            .data(small_array);
+        dots2 = g.selectAll(".many-scatter-dots")
+            .data(big_array);
+        dots2.transition()
+            .duration(2000)
+            .attr("cx", function (d) {return x(d[0]); } )
+            .attr("cy", function (d) {return y(d[1]); } );
+        dots.transition()
+            .duration(2000)
+            .attr("cx", function (d) {return x(d[0]); } )
+            .attr("cy", function (d) {return y(d[1]); } );
+
+        await sleep(2000);
+        for(let i = 0; i < 10; i++){
+            other_array[1] = big_array[i];
+            console.log(big_array[i]);
+            g.selectAll("path")
+                .transition()
+                .duration(300)
+                .attr("d", line(other_array));
+            await sleep(600)
+            other_array[1] =other_array[0];
+            g.selectAll("path")
+                .transition()
+                .duration(300)
+                .attr("d", line(other_array));
+
+        }
+
 
 
     }
@@ -371,6 +449,7 @@
             graphic: '.scroll__graphic',
             text: '.scroll__text',
             step: '.scroll__text .step',
+            offset: 0.3
         })
             .onStepEnter(handleStepEnter)
             .onContainerEnter(handleContainerEnter)
