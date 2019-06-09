@@ -480,7 +480,6 @@
             .attr("cx", d => x(d[0]))
             .attr("cy", d => y(d[1]));
 
-       // drawTimeComplexityGraph(g, 30);
         await sleep(2000);
 
         for(let i = 0; i < num_points; i++){
@@ -530,7 +529,7 @@
         point = [[point, point * point]];
         let margin = {left: 10, right: 10, bottom: 35, top: 10};
         let highPoint = max_points;
-        let data = new Array(highPoint)
+        let data = new Array(highPoint);
         for(let i = 0; i < highPoint; i++){
             data[i] = i;
         }
@@ -616,6 +615,8 @@
         small_array.forEach((function (elem) {
             big_array.push(elem);
         }));
+
+        width = width / 2;
 
         let quadtree = d3.quadtree()
             .extent([[0, 0], [2048, 2048]])
