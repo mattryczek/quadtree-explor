@@ -108,6 +108,7 @@
                 Continue scrolling to see an example further detailing the drawing process.
             </p>
         </div>
+        <div class='step' data-step='6'></div>
     </div>
 </section>
 <section>
@@ -230,7 +231,7 @@
                 makeQuad(g);
                 break;
             case 4:
-                drawTree()
+                // drawTree();
         }
     }
 
@@ -447,10 +448,10 @@
             .style("stroke-width", "2")
             .style("opacity", "1");
 
-        dots = g.selectAll(".scatter-dots")
-            .data(small_array);
+        let dots = g.selectAll(".scatter-dots")
+            .data(small_array),
 
-        dots2 = g.selectAll(".many-scatter-dots")
+            dots2 = g.selectAll(".many-scatter-dots")
             .data(new_array)
             .style("fill", "black");
 
@@ -571,7 +572,7 @@
                 .attr("width", width)
                 .attr("height", height);
 
-        let dataset = d3.range(20).map( () => [Math.floor(Math.random() * 1024), Math.floor(Math.random() * 1024)]);
+        let dataset = d3.range(8).map( () => [Math.floor(Math.random() * 1024), Math.floor(Math.random() * 1024)]);
 
         let diy_quadtree = d3.quadtree()
             .extent([[0, 0], [1024, 1024]])
@@ -603,9 +604,7 @@
             .append("circle")
             .attr("cx", d => xScale(d[0]))
             .attr("cy", d => yScale(d[1]))
-            .attr("r", radius)
-            .on("mouseover", handleMouseOver)
-            .on("mouseout", handleMouseOut);
+            .attr("r", radius);
 
 
         svg.on("click", function () {
@@ -625,9 +624,7 @@
                 .append("circle")
                 .attr("cx", d => xScale(d[0]))
                 .attr("cy", d => yScale(d[1]))
-                .attr("r", radius)
-                .on("mouseover", handleMouseOver)
-                .on("mouseout", handleMouseOut);
+                .attr("r", radius);
 
             svg.selectAll(".node2").remove();
 
@@ -640,24 +637,8 @@
                 .attr("y", d => (d.y0 / 1024) * height)
                 .attr("width", d => ((width / 1024) * d.y1) - ((width / 1024) * d.y0))
                 .attr("height", d => ((height / 1024) * d.x1) - ((height / 1024) * d.x0));
+
         });
-        
-        function handleMouseOver() {
-
-            d3.select(this)
-                .style("fill", "steelblue")
-                .attr("r", radius * 2);
-        }
-
-        function handleMouseOut() {
-            d3.select(this)
-                .style("fill", "black")
-                .attr("r", radius);
-        }
-    }
-
-    function drawTree() {
-        
     }
 
     function handleContainerEnter(response) {
