@@ -112,239 +112,235 @@
 <script src='https://cdnjs.cloudflare.com/ajax/libs/scrollama/1.4.1/scrollama.min.js'></script>
 
 <script>
-    // using d3 for convenience
-    var container = d3.select('#scroll');
-    var graphic = container.select('.scroll__graphic');
-    var chart = graphic.select('.chart');
-    var text = container.select('.scroll__text');
-    var step = text.selectAll('.step');
-    var entered = 0;
+    let container = d3.select('#scroll'),
+        graphic = container.select('.scroll__graphic'),
+        chart = graphic.select('.chart'),
+        text = container.select('.scroll__text'),
+        step = text.selectAll('.step'),
+        entered = 0;
 
-    var num_points = 30;
+    let num_points = 30;
 
-    var big_array = d3.range(num_points).map(function() { return [Math.random() * 2048, Math.random() * 2048]; });
-    var small_array = new Array(2);
-    // initialize the scrollama
-    var scroller = scrollama();
-    // generic window resize listener event
-    d3.select("#point_input_button").on("click", function() {
-        updatePartCount();
-    });
+    let big_array = d3.range(num_points).map(function() { return [Math.random() * 2048, Math.random() * 2048]; }),
+        small_array = new Array(2),
+        scroller = scrollama();
+
+    d3.select("#point_input_button")
+        .on("click", function() {
+            updatePartCount();
+        });
+
     function handleResize() {
-        // 1. update height of step elements
-        var stepHeight = Math.floor(window.innerHeight * 0.6);
+        let stepHeight = Math.floor(window.innerHeight * 0.6);
+
         step.style('height', stepHeight + 'px');
-        // 2. update width/height of graphic element
-        var bodyWidth = d3.select('body').node().offsetWidth;
-        graphic
-            .style('width', bodyWidth + 'px')
-            .style('height', window.innerHeight + 'px');
-        var chartMargin = 32;
-        var textWidth = text.node().offsetWidth;
-        var chartWidth = graphic.node().offsetWidth - textWidth - chartMargin;
-        chart
-            .style('width', chartWidth + 'px')
-            .style('height', Math.floor(window.innerHeight / 2) + 'px');
-        // 3. tell scrollama to update new element dimensions
+
+        let bodyWidth = d3.select('body').node().offsetWidth;
+
+        graphic.style('width', bodyWidth + 'px').style('height', window.innerHeight + 'px');
+
+        let chartMargin = 32,
+            textWidth = text.node().offsetWidth,
+            chartWidth = graphic.node().offsetWidth - textWidth - chartMargin;
+
+        chart.style('width', chartWidth + 'px').style('height', Math.floor(window.innerHeight / 2) + 'px');
+
         scroller.resize();
     }
-    // scrollama event handlers
     function handleStepEnter(response) {
-        var margin;
-        var width;
-        var height;
-        var svg;
-        var main;
-        var g;
-        var path;
-        if(entered === 0){
-            margin = {top: 20, right: 15, bottom: 60, left: 60}
+        let width, height, svg, main, g;
 
+        if(entered === 0){
             width = chart.node().getBoundingClientRect().width;
             height = chart.node().getBoundingClientRect().height;
-            var path_data = [[4, 5], [12, 5]]
+
+            let path_data = [[4, 5], [12, 5]];
+
             svg = chart
                 .select('svg')
                 .attr('class', 'chart_data')
                 .attr('width', width )
                 .attr('height',height );
+
             let line = d3.line()
-                .x(function(d) { return d[0]; })
-                .y(function(d) { return d[1]; });
+                .x(d => d[0])
+                .y(d => d[1]);
+
             main = svg.append('g')
                 .attr('width', width)
                 .attr('height', height)
                 .attr('class', 'main');
+
             g = main.append("svg:g").attr("class", "data_points");
 
-             g.append('path')
-                 .attr('d', line(path_data))
-                 .attr("class", "primary_path");
+            g.append('path')
+                .attr('d', line(path_data))
+                .attr("class", "primary_path");
 
             entered = 1;
-        }else{
-             margin = {top: 20, right: 15, bottom: 60, left: 60}
 
+        }else{
              width = chart.node().getBoundingClientRect().width;
              height = chart.node().getBoundingClientRect().height;
-             svg = chart
-                .select('svg');
+
+             svg = chart.select('svg');
+
              main = svg.select('g');
-             g = main.select(".data_points");//.attr("class", "data_points");
-            path = svg.select('path');
+             g = main.select(".data_points");
         }
 
-        // response = { element, direction, index }
-        // add color to current step only
         step.classed('is-active', function (d, i) {
             return i === response.index;
         });
-        ////////////////////////////////////////////
-        if (response.index === 0) {
-            small_array = [[2, 5], [12, 5]];
-            let other_array = [[2, 5], [2, 5]];
 
-            var x = d3.scaleLinear()
-                .domain([0, 20])//d3.max(data, function(d) { return d[0]; })])
-                .range([0, width]);
+        switch (response.index) {
+            case 0:
+                precedent(width, height, g);
+                break;
 
-            var y = d3.scaleLinear()
-                .domain([0, 10])//d3.max(data, function(d) { return d[1]; })])
-                .range([height, 0]);
+            case 1:
+                collideTwoDots(g);
+                break;
 
-            let line = d3.line()
-                .x(function(d) { return x(d[0]); })
-                .y(function(d) { return y(d[1]); });
-            g.selectAll("path")
-                .attr("d", line(other_array))
-                .style("stroke", "black")
-                .style("stroke-width", "5");
+            case 2:
+                expandGraph(g);
+                break;
 
-            g.selectAll(".scatter-dots")
-                .data(small_array)
-                .enter().append("circle")
-                .attr('fill','blue')
-                .attr('stroke','black')
-                .attr("class", "scatter-dots")
-                .attr("cx", function (d, i) {
-                    return x(d[0]);
-                })
-                .attr("cy", function (d) {
-                    return y(d[1]);
-                })
-                .attr("r", 40);
-            g.selectAll(".scatter-dots").transition()
-                .duration(1000)
-                .attr("cx", function (d) {
-                    return x(d[0]);
-                })
-                .attr("cy", function (d) {
-                    return y(d[1]);
-                })
-                .attr("r", 40);
-
-            searchFirst(g);
-        }
-
-        if (response.index === 1) {
-            collideTwoDots(g);
-        }
-        if(response.index === 2){
-            expandGraph(g);
-        }
-        if(response.index === 3){
-            makeQuad(g);
+            case 3:
+                makeQuad(g);
+                break;
         }
     }
-    async function searchFirst(g){
-        var width = chart.node().getBoundingClientRect().width;
-        var height = chart.node().getBoundingClientRect().height;
+
+    async function precedent(width, height, g){
+        small_array = [[2, 5], [12, 5]];
+        let other_array = [[2, 5], [2, 5]];
+
         var x = d3.scaleLinear()
-            .domain([0, 20])//d3.max(data, function(d) { return d[0]; })])
+            .domain([0, 20])
             .range([0, width]);
 
         var y = d3.scaleLinear()
-            .domain([0, 10])//d3.max(data, function(d) { return d[1]; })])
+            .domain([0, 10])
+            .range([height, 0]);
+
+        let line = d3.line()
+            .x(d => x(d[0]))
+            .y(d => y(d[1]));
+
+        g.selectAll("path")
+            .attr("d", line(other_array))
+            .style("stroke", "black")
+            .style("stroke-width", "5");
+
+        g.selectAll(".scatter-dots")
+            .data(small_array)
+            .enter()
+            .append("circle")
+            .attr('fill','blue')
+            .attr('stroke','black')
+            .attr("class", "scatter-dots")
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
+            .attr("r", 40);
+
+        g.selectAll(".scatter-dots")
+            .transition()
+            .duration(1000)
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
+            .attr("r", 40);
+
+        searchFirst(g);
+    }
+    async function searchFirst(g){
+        let width = chart.node().getBoundingClientRect().width,
+            height = chart.node().getBoundingClientRect().height,
+
+            x = d3.scaleLinear()
+            .domain([0, 20])
+            .range([0, width]),
+
+            y = d3.scaleLinear()
+            .domain([0, 10])
             .range([height, 0]);
 
         let temp_data = [[6, 5], [12, 5]];
         let temp_path_data = [[6, 5], [6, 5]];
 
         let line = d3.line()
-            .x(function(d) { return x(d[0]); })
-            .y(function(d) { return y(d[1]); });
+            .x(d => x(d[0]))
+            .y(d => y(d[1]));
 
         g.selectAll(".scatter-dots").data(temp_data);
 
-        g.selectAll(".scatter-dots").transition()
+        g.selectAll(".scatter-dots")
+            .transition()
             .duration(1000)
-            .attr("cx", function (d) {
-                return x(d[0]);
-            })
-            .attr("cy", function (d) {
-                return y(d[1]);
-            });
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]));
+
         g.selectAll("path")
             .transition()
             .duration(1000)
             .attr("d", line(temp_path_data));
+
         await sleep(800);
+
         g.selectAll("path")
             .transition()
             .duration(1200)
             .attr("d", line(temp_data));
+
         await sleep(1000);
+
         g.selectAll("path")
             .transition()
             .duration(800)
             .style("stroke", "#32CD32")
-
     }
 
     async function collideTwoDots(g){
         small_array[0] = [11, 5];
         small_array[1] = [12, 5];
 
-        var width = chart.node().getBoundingClientRect().width;
-        var height = chart.node().getBoundingClientRect().height;
+        let width = chart.node().getBoundingClientRect().width,
+            height = chart.node().getBoundingClientRect().height,
 
-        var x = d3.scaleLinear()
-            .domain([0, 20])//d3.max(data, function(d) { return d[0]; })])
-            .range([ 0, width ]);
+            x = d3.scaleLinear()
+            .domain([0, 20])
+            .range([ 0, width ]),
 
-        var y = d3.scaleLinear()
-            .domain([0, 10])//d3.max(data, function(d) { return d[1]; })])
+            y = d3.scaleLinear()
+            .domain([0, 10])
             .range([ height, 0 ]);
 
-        let line = d3.line()
-            .x(function(d) { return x(d[0]); })
-            .y(function(d) { return y(d[1]); });
+        let dots = g.selectAll(".scatter-dots").data(small_array);
 
-        var dots = g.selectAll(".scatter-dots")
-            .data(small_array);
         dots.exit().remove();
 
         g.selectAll(".many-scatter-dots")
             .data(big_array)
-            .enter().append("circle")
+            .enter()
+            .append("circle")
             .attr("class", "many-scatter-dots")
             .attr("id", function (d, i) {return "point_" + i;})
-            .attr("cx", function (d) { return x(d[0]); } )
-            .attr("cy", function (d) { return y(d[1]); } )
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
             .attr("r", 40)
             .style("opacity", 0);
 
         g.selectAll(".many-scatter-dots")
             .transition()
-            .attr("cx", function (d) { return x(d[0]); } )
-            .attr("cy", function (d) { return y(d[1]); } )
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
             .attr("r", 40)
             .style("opacity", 0);
 
         dots.transition()
             .duration(1000)
-            .attr("cx", function (d) { return x(d[0]); } )
-            .attr("cy", function (d) { return y(d[1]); } )
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
             .attr("r", 40);
 
         g.selectAll("path")
@@ -360,43 +356,43 @@
     function sleep(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
+
     async function expandGraph(g){
 
-        var width = chart.node().getBoundingClientRect().width;
-        var height = chart.node().getBoundingClientRect().height;
+        let width = chart.node().getBoundingClientRect().width,
+            height = chart.node().getBoundingClientRect().height,
 
-        var x = d3.scaleLinear()
-            .domain([0, 2048])//d3.max(data, function(d) { return d[0]; })])
-            .range([ 0, width ]);
+            x = d3.scaleLinear()
+                .domain([0, 2048])
+                .range([ 0, width]),
 
-        var y = d3.scaleLinear()
-            .domain([0, 2048])//d3.max(data, function(d) { return d[1]; })])
-            .range([ height, 0 ]);
+            y = d3.scaleLinear()
+                .domain([0, 2048])
+                .range([ 0, height]);
 
-        var dots = g.selectAll(".scatter-dots")
-            .data(small_array);
-        var dots2 = g.selectAll(".many-scatter-dots")
+        let dots = g.selectAll(".scatter-dots")
+            .data(small_array),
+
+            dots2 = g.selectAll(".many-scatter-dots")
             .data(big_array);
-
-        let mycolor2 = d3.rgb(0, 0, 0);
 
         dots.transition()
             .duration(1000)
-            .attr("cx", function (d) { return x(d[0]); } )
-            .attr("cy", function (d) {  return y(d[1]); } )
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
             .attr("r", 4);
 
         dots2.transition()
             .duration(1000)
-            .attr("cx", function (d) {return x(d[0]); } )
-            .attr("cy", function (d) {return y(d[1]); } )
-            .style("fill", mycolor2)
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
             .attr("r", 4)
+            .style("fill", d3.rgb(0, 0, 0))
             .style("opacity", 1);
 
         await sleep(2000);
 
-        drawLines(g, big_array)
+        drawLines(g, big_array);
     }
 
     async function drawLines(g, new_array){
@@ -406,21 +402,22 @@
         small_array[0] = [Math.random()*2048, Math.random()*2048];
         small_array[1] = [Math.random()*2048, Math.random()*2048];
 
-        var width = chart.node().getBoundingClientRect().width;
-        var height = chart.node().getBoundingClientRect().height;
+        let width = chart.node().getBoundingClientRect().width,
+            height = chart.node().getBoundingClientRect().height,
 
-        var x = d3.scaleLinear()
-            .domain([0, 2048])//d3.max(data, function(d) { return d[0]; })])
-            .range([ 0, width ]);
+            x = d3.scaleLinear()
+            .domain([0, 2048])
+            .range([ 0, width]),
 
-        var y = d3.scaleLinear()
-            .domain([0, 2048])//d3.max(data, function(d) { return d[1]; })])
-            .range([ 0, height ]);
-        let line = d3.line()
-            .x(function(d) { return x(d[0]); })
-            .y(function(d) { return y(d[1]); });
+            y = d3.scaleLinear()
+            .domain([0, 2048])
+            .range([ 0, height]),
 
-        let other_array = [small_array[0], small_array[0]];
+            line = d3.line()
+                .x(d => x(d[0]))
+                .y(d => y(d[1])),
+
+            other_array = [small_array[0], small_array[0]];
 
         g.selectAll("path")
             .attr("d", line(other_array))
@@ -440,36 +437,42 @@
         dots2.enter().append("circle")
             .attr("class", "many-scatter-dots")
             .attr("id", function (d, i) {return "point_" + i;})
-            .attr("cx", function (d) {return x(d[0]); } )
-            .attr("cy", function (d) {return y(d[1]); } )
-            .style("fill", "black")
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
             .attr("r", 4)
+            .style("fill", "black")
             .style("opacity", 1);
 
         dots2.transition()
             .duration(2000)
-            .attr("cx", function (d) {return x(d[0]); } )
-            .attr("cy", function (d) {return y(d[1]); } );
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]));
 
         dots.transition()
             .duration(2000)
-            .attr("cx", function (d) {return x(d[0]); } )
-            .attr("cy", function (d) {return y(d[1]); } );
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]));
 
         await sleep(2000);
+
         for(let i = 0; i < num_points; i++){
             step.select("#counter").html("<br>Particles Checked: " + (i+1));
             other_array[1] = new_array[i];
+
             g.selectAll("path")
                 .transition()
                 .duration(30)
                 .attr("d", line(other_array));
+
             g.selectAll("#point_" + i)
                 .transition()
                 .duration(30)
                 .style("fill", "#00FF00");
+
             await sleep(60);
+
             other_array[1] =other_array[0];
+
             g.selectAll("path")
                 .transition()
                 .duration(30)
@@ -480,18 +483,19 @@
     }
 
     function updatePartCount(){
-        let svg = chart.select('svg');
-        let main = svg.select(".main");
-        let g = main.select(".data_points");
-        let val = d3.select("#point_input").node().value;
-        console.log(val);
+        let svg = chart.select('svg'),
+            main = svg.select(".main"),
+            g = main.select(".data_points"),
+            val = d3.select("#point_input").node().value;
+
         num_points = val;
+
         drawLines(g, new Array(num_points));
     }
 
     async function makeQuad(g){
 
-        var svg = chart.select("svg"),
+        let svg = chart.select("svg"),
             width = +svg.attr("width"),
             height = +svg.attr("height");
 
@@ -499,7 +503,7 @@
             big_array.push(elem);
         }));
 
-        var quadtree = d3.quadtree()
+        let quadtree = d3.quadtree()
             .extent([[0, 0], [2048, 2048]])
             .addAll(big_array);
 
@@ -515,22 +519,18 @@
             .attr("width", function(d) { return ((width/2048)*d.y1) - ((width/2048)*d.y0); })
             .attr("height", function(d) { return ((height/2048)*d.x1) - ((height/2048)*d.x0); });
 
-        // svg.selectAll(".point")
-        //     .data(big_array)
-        //     .enter()
-        //     .append("circle")
-        //     .attr("class", "point")
-        //     .attr("cx", function(d) { return (d[0]/2048)*width; })
-        //     .attr("cy", function(d) { return (d[1]/2048)*height; })
-        //     .attr("r", 2);
-
         function nodes(quadtree) {
-            var nodes = [];
+            let nodes = [];
+
             quadtree.visit(function(node, x0, y0, x1, y1) {
-                node.x0 = x0, node.y0 = y0;
-                node.x1 = x1, node.y1 = y1;
+                node.x0 = x0,
+                    node.y0 = y0,
+                    node.x1 = x1,
+                    node.y1 = y1;
+
                 nodes.push(node);
             });
+
             return nodes;
         }
     }
@@ -605,16 +605,15 @@
                 .data(dataset)
                 .enter()
                 .append("circle")
-                .attr("cx", function(d) { return xScale(d.x); })
-                .attr("cy", function(d) { return yScale(d.y); })// Get attributes from circleAttrs var
+                .attr("cx", d => xScale(d.x))
+                .attr("cy", d => yScale(d.y))
                 .attr("r", radius)
                 .on("mouseover", handleMouseOver)
                 .on("mouseout", handleMouseOut);
         });
 
         // Create Event Handlers for mouse
-        function handleMouseOver(d, i) {  // Add interactivity
-
+        function handleMouseOver(d, i) {
 
             // Use D3 to select element, change color and size
             d3.select(this)
@@ -623,10 +622,10 @@
 
             // Specify where to put label of text
             svg.append("text")
-                .attr("id", "t" + d.x + "-" + d.y + "-" + i)  // Create an id for text so we can select it later for removing on mouseout
-                .attr("x",  function() { return xScale(d.x) - 30;})
-                .attr("y", function() { return yScale(d.y) - 15; })
-                .text(function() { return [d.x, d.y] }); // Value of the text
+                .attr("id", "t" + d.x + "-" + d.y + "-" + i)
+                .attr("x", () => xScale(d.x) - 30)
+                .attr("y", () => yScale(d.y) - 15)
+                .text( () => [d.x, d.y] );
         }
 
         function handleMouseOut(d, i) {
@@ -641,14 +640,11 @@
     }
 
     function handleContainerEnter(response) {
-        // response = { direction }
-        // sticky the graphic (old school)
         graphic.classed('is-fixed', true);
         graphic.classed('is-bottom', false);
     }
+
     function handleContainerExit(response) {
-        // response = { direction }
-        // un-sticky the graphic, and pin to top/bottom of container
         graphic.classed('is-fixed', false);
         graphic.classed('is-bottom', response.direction === 'down');
 
@@ -656,11 +652,8 @@
     }
 
     function init() {
-        // 1. force a resize on load to ensure proper dimensions are sent to scrollama
         handleResize();
-        // 2. setup the scroller passing options
-        // this will also initialize trigger observations
-        // 3. bind scrollama event handlers (this can be chained like below)
+
         scroller.setup({
             container: '#scroll',
             graphic: '.scroll__graphic',
@@ -671,11 +664,11 @@
             .onStepEnter(handleStepEnter)
             .onContainerEnter(handleContainerEnter)
             .onContainerExit(handleContainerExit);
-        // setup resize event
         window.addEventListener('resize', handleResize);
     }
-    // kick things off
+
     init();
+
 </script>
 </body>
 
