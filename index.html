@@ -71,7 +71,7 @@
             <br><br><br>
             <p class='step__text'>
                 Let's look at what happens
-                with<br> <input type="number" id = "point_input" name="numObj" value="300" max="1000" min="2"> objects...<br>
+                with<br> <input type="number" id = "point_input" name="numObj" value="300" max="300" min="2"> objects...<br>
                 <div id = "counter"></div>
                 <button type="button" id="point_input_button">Click Me!</button>
             </p>
@@ -89,8 +89,7 @@
                 figure out which objects are close to each other.
                 <br><br>
                 In order to create our tree, we recursively divide our 2D space into equally 
-                sized quadrants, until each quadrant contains at least one and at most four
-                objects.
+                sized quadrants, until each quadrant contains one object.
             </p>
         </div>
         <div class='step' data-step='5'>
@@ -105,6 +104,8 @@
                 The tree is built by recursively looking at the largest rectangle first, and then each of
                 the four quadrants inside of it. Once you
                 reach a rectangle that has no more inner rectangles, the points that lie here are leaves in the tree.
+                <br><br> 
+                Continue scrolling to see an example further detailing the drawing process.
             </p>
         </div>
     </div>
@@ -228,6 +229,8 @@
             case 3:
                 makeQuad(g);
                 break;
+            case 4:
+                drawTree()
         }
     }
 
@@ -506,6 +509,10 @@
             main = svg.select(".main"),
             g = main.select(".data_points"),
             val = d3.select("#point_input").node().value;
+            if (val > 300) {
+                alert("Please input a number between 2 and 300")
+                return
+            }
 
         num_points = val;
 
@@ -656,6 +663,10 @@
         }
     }
 
+    function drawTree() {
+        
+    }
+
     function handleContainerEnter(response) {
         graphic.classed('is-fixed', true);
         graphic.classed('is-bottom', false);
@@ -676,7 +687,8 @@
             graphic: '.scroll__graphic',
             text: '.scroll__text',
             step: '.scroll__text .step',
-            offset: 0.3
+            offset: 0.3,
+            //once: true
         })
             .onStepEnter(handleStepEnter)
             .onContainerEnter(handleContainerEnter)
