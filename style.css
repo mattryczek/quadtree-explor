@@ -154,7 +154,7 @@ p, h1 {
     stroke-width: 5px;
 }
 
-.node {
+.node, .node2{
     fill: none;
     stroke: #ccc;
     shape-rendering: crispEdges;

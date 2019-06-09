@@ -504,10 +504,9 @@
     function updatePartCount(){
         let svg = chart.select('svg'),
             main = svg.select(".main"),
-            g = main.select(".data_points"),
-            val = d3.select("#point_input").node().value;
+            g = main.select(".data_points");
 
-        num_points = val;
+        num_points = d3.select("#point_input").node().value;
 
         drawLines(g, new Array(num_points));
     }
@@ -533,130 +532,123 @@
             .transition()
             .duration(1000)
             .attr("class", "node")
-            .attr("x", function(d) { return (d.x0/2048)*width; })
-            .attr("y", function(d) { return (d.y0/2048)*height; })
-            .attr("width", function(d) { return ((width/2048)*d.y1) - ((width/2048)*d.y0); })
-            .attr("height", function(d) { return ((height/2048)*d.x1) - ((height/2048)*d.x0); });
+            .attr("x", d => (d.x0/2048)*width)
+            .attr("y", d => (d.y0/2048)*height)
+            .attr("width", d => ((width/2048)*d.y1) - ((width/2048)*d.y0))
+            .attr("height", d => ((height/2048)*d.x1) - ((height/2048)*d.x0));
 
-        function nodes(quadtree) {
-            let nodes = [];
+    }
 
-            quadtree.visit(function(node, x0, y0, x1, y1) {
-                node.x0 = x0,
-                    node.y0 = y0,
-                    node.x1 = x1,
-                    node.y1 = y1;
+    function nodes(quadtree) {
+        let nodes = [];
 
-                nodes.push(node);
-            });
+        quadtree.visit(function(node, x0, y0, x1, y1) {
+            node.x0 = x0,
+                node.y0 = y0,
+                node.x1 = x1,
+                node.y1 = y1;
 
-            return nodes;
-        }
+            nodes.push(node);
+        });
+
+        return nodes;
     }
 
     function build_tree(){
-        let w = window.innerWidth-100,
-            h = window.innerHeight-300,
-            margin = { top: 40, right: 20, bottom: 0, left: 40 },
-            radius = 6;
+        let width = window.innerWidth/2 - 100,
+            height = window.innerHeight - 300,
+            radius = 4,
 
-        let svg = d3.select(".quadtree")
-            .attr("width", w)
-            .attr("height", h);
+            svg = d3.select(".quadtree")
+                .attr("width", width)
+                .attr("height", height);
 
-        let dataset = [
-            { x: 100, y: 110 },
-            { x: 83, y: 43 },
-            { x: 92, y: 28 },
-            { x: 49, y: 74 },
-            { x: 51, y: 10 },
-            { x: 25, y: 98 },
-            { x: 77, y: 30 },
-            { x: 20, y: 83 },
-            { x: 11, y: 63 },
-            { x:  4, y: 55 },
-            { x:  0, y:  0 },
-            { x: 85, y: 100 },
-            { x: 60, y: 40 },
-            { x: 70, y: 80 },
-            { x: 10, y: 20 },
-            { x: 40, y: 50 },
-            { x: 25, y: 31 }
-        ];
+        let dataset = d3.range(20).map( () => [Math.floor(Math.random() * 1024), Math.floor(Math.random() * 1024)]);
 
-        // We're passing in a function in d3.max to tell it what we're maxing (x value)
-        var xScale = d3.scaleLinear()
-            .domain([0, d3.max(dataset, function (d) { return d.x + 10; })])
-            .range([margin.left, w - margin.right]);  // Set margins for x specific
+        let diy_quadtree = d3.quadtree()
+            .extent([[0, 0], [1024, 1024]])
+            .addAll(dataset);
 
-        // We're passing in a function in d3.max to tell it what we're maxing (y value)
-        var yScale = d3.scaleLinear()
-            .domain([0, d3.max(dataset, function (d) { return d.y + 10; })])
-            .range([h - margin.bottom, margin.top]);  // Set margins for y specific
+        svg.selectAll(".node2")
+            .data(nodes(diy_quadtree))
+            .enter()
+            .append("rect")
+            .transition()
+            .duration(1000)
+            .attr("class", "node2")
+            .attr("x", d => (d.x0/1024)*width)
+            .attr("y", d => (d.y0/1024)*height)
+            .attr("width", d => ((width/1024)*d.y1) - ((width/1024)*d.y0))
+            .attr("height", d => ((height/1024)*d.x1) - ((height/1024)*d.x0));
 
-        
-        var xAxis = d3.axisTop().scale(xScale);
-        var yAxis = d3.axisLeft().scale(yScale);
+        let xScale = d3.scaleLinear()
+            .domain([0, 1024])
+            .range([0, width]),
+
+            yScale = d3.scaleLinear()
+            .domain([0, 1024])
+            .range([0, height]);
 
         svg.selectAll("circle")
             .data(dataset)
             .enter()
             .append("circle")
-            .attr("cx", function(d) { return xScale(d.x); },)
-            .attr("cy", function(d) { return yScale(d.y); },)
+            .attr("cx", d => xScale(d[0]))
+            .attr("cy", d => yScale(d[1]))
             .attr("r", radius)
             .on("mouseover", handleMouseOver)
             .on("mouseout", handleMouseOut);
 
-        
-        svg.on("click", function() {
+
+        svg.on("click", function () {
             let coords = d3.mouse(this);
 
-            // Normally we go from data to pixels, but here we're doing pixels to data
-            let newData= {
-                x: Math.round( xScale.invert(coords[0])),  // Takes the pixel number to convert to number
-                y: Math.round( yScale.invert(coords[1]))
-            };
+            let newData = [
+                Math.floor(xScale.invert(coords[0])),
+                Math.floor(yScale.invert(coords[1]))
+            ];
 
-            dataset.push(newData);  
+            dataset.push(newData);
+            diy_quadtree.add(newData);
 
-            svg.selectAll("circle") 
+            svg.selectAll("circle")
                 .data(dataset)
                 .enter()
                 .append("circle")
-                .attr("cx", d => xScale(d.x))
-                .attr("cy", d => yScale(d.y))
+                .attr("cx", d => xScale(d[0]))
+                .attr("cy", d => yScale(d[1]))
                 .attr("r", radius)
                 .on("mouseover", handleMouseOver)
                 .on("mouseout", handleMouseOut);
+
+            svg.selectAll(".node2").remove();
+
+            svg.selectAll(".node2")
+                .data(nodes(diy_quadtree))
+                .enter()
+                .append("rect")
+                .attr("class", "node2")
+                .attr("x", d => (d.x0 / 1024) * width)
+                .attr("y", d => (d.y0 / 1024) * height)
+                .attr("width", d => ((width / 1024) * d.y1) - ((width / 1024) * d.y0))
+                .attr("height", d => ((height / 1024) * d.x1) - ((height / 1024) * d.x0));
         });
-
         
-        function handleMouseOver(d, i) {
+        function handleMouseOver() {
 
-            
             d3.select(this)
                 .style("fill", "steelblue")
                 .attr("r", radius * 2);
-
-            
-            svg.append("text")
-                .attr("id", "t" + d.x + "-" + d.y + "-" + i)
-                .attr("x", () => xScale(d.x) - 30)
-                .attr("y", () => yScale(d.y) - 15)
-                .text( () => [d.x, d.y] );
         }
 
-        function handleMouseOut(d, i) {
+        function handleMouseOut() {
             d3.select(this)
                 .style("fill", "black")
                 .attr("r", radius);
-
-            d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
         }
     }
 
-    function handleContainerEnter(response) {
+    function handleContainerEnter() {
         graphic.classed('is-fixed', true);
         graphic.classed('is-bottom', false);
     }
