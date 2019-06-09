@@ -20,7 +20,7 @@ p, h1 {
 
     margin: 20px;
     text-align: left;
-    height: 550px;
+    height: 600px;
 }
 
 .intro__info {
@@ -48,7 +48,17 @@ p, h1 {
 #outro {
     height: 100%;
     border: 1px solid black;
-    margin: 20px;
+    margin-left: 20px;
+    margin-bottom: 30px;
+}
+
+.outro__text {
+    margin-left: 20px;
+    margin-bottom: 20px;
+}
+
+.build__btn {
+    margin-left: 20px;
 }
 /* scrollama */
 #scroll {

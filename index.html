@@ -24,7 +24,10 @@
         number of times the algorithm is run. In order to do this, developers utilize quadtrees,
         a data structure that eliminates checks for impropable collisions. Scroll to explore an illustrated
         breakdown of quadtrees and their use.
-        
+        <br><br>
+        In addition to aiding collision detection, quadtrees have a variety of use cases. They are also seen
+        in image processing (such as compressing images), spatial indexing, and mesh generation to assist
+        rendering physical simulations such as fluid dynamics.
     </p>
     <p class='intro__text intro__img'>
         <img src="galaga.gif">
@@ -94,19 +97,35 @@
             <p class='step__title'>Visualizing the Tree</p>
             <br>
             <p class='step__text'>
-                Here's more text for the tree explanation.
+                After completing the partitioning step, we are ready to transform the initial 2D space into 
+                a quadtree. Each rectangle in the graph above becomes a node in the tree, with every node having up
+                to four children. A child can either represent another inner rectangle, or a single point. In the case of
+                an inner rectangle, this node will have children of its own too.
+                <br><br>
+                The tree is built by recursively looking at the largest rectangle first, and then each of
+                the four quadrants inside of it. Once you
+                reach a rectangle that has no more inner rectangles, the points that lie here are leaves in the tree.
             </p>
         </div>
     </div>
 </section>
-<section id='outro'>
-    <svg class="quadtree">
-
+<section>
+    <div class="outro__text">
+        <p class='step__title'>Building A Tree of Your Own</p>
+        <br>
+        <p class='step__text'>
+            Click inside the following rectangle to create your own arrangement of points in space, noting the 
+            x and y coordinates for each point. Once you've reached the desired layout, watch as the points transform
+            into a quadtree! <button class='build__btn'>Create the Quadtree!</button>
+        </p>
+    </div>
+    <svg id='outro' class="quadtree">
     </svg>
-    <svg class="anim">
-
-    </svg>
+    
+    <!-- <svg class="anim">
+    </svg>-->
 </section>
+
 <script src='https://d3js.org/d3.v4.min.js'></script>
 <script src='https://unpkg.com/intersection-observer'></script>
 <script src='https://cdnjs.cloudflare.com/ajax/libs/scrollama/1.4.1/scrollama.min.js'></script>
@@ -368,7 +387,7 @@
 
             y = d3.scaleLinear()
                 .domain([0, 2048])
-                .range([ 0, height]);
+                .range([50, height]);
 
         let dots = g.selectAll(".scatter-dots")
             .data(small_array),
@@ -536,9 +555,9 @@
     }
 
     function build_tree(){
-        let w = window.innerWidth,
-            h = window.innerHeight,
-            margin = { top: 40, right: 20, bottom: 20, left: 40 },
+        let w = window.innerWidth-100,
+            h = window.innerHeight-300,
+            margin = { top: 40, right: 20, bottom: 0, left: 40 },
             radius = 6;
 
         let svg = d3.select(".quadtree")
@@ -573,9 +592,9 @@
         // We're passing in a function in d3.max to tell it what we're maxing (y value)
         var yScale = d3.scaleLinear()
             .domain([0, d3.max(dataset, function (d) { return d.y + 10; })])
-            .range([margin.top, h - margin.bottom]);  // Set margins for y specific
+            .range([h - margin.bottom, margin.top]);  // Set margins for y specific
 
-        // Add a X and Y Axis (Note: orient means the direction that ticks go, not position)
+        
         var xAxis = d3.axisTop().scale(xScale);
         var yAxis = d3.axisLeft().scale(yScale);
 
@@ -584,12 +603,12 @@
             .enter()
             .append("circle")
             .attr("cx", function(d) { return xScale(d.x); },)
-            .attr("cy", function(d) { return yScale(d.y); },)// Get attributes from circleAttrs var
+            .attr("cy", function(d) { return yScale(d.y); },)
             .attr("r", radius)
             .on("mouseover", handleMouseOver)
             .on("mouseout", handleMouseOut);
 
-        // On Click, we want to add data to the array and chart
+        
         svg.on("click", function() {
             let coords = d3.mouse(this);
 
@@ -599,9 +618,9 @@
                 y: Math.round( yScale.invert(coords[1]))
             };
 
-            dataset.push(newData);   // Push data to our array
+            dataset.push(newData);  
 
-            svg.selectAll("circle")  // For new circle, go through the update process
+            svg.selectAll("circle") 
                 .data(dataset)
                 .enter()
                 .append("circle")
@@ -612,15 +631,15 @@
                 .on("mouseout", handleMouseOut);
         });
 
-        // Create Event Handlers for mouse
+        
         function handleMouseOver(d, i) {
 
-            // Use D3 to select element, change color and size
+            
             d3.select(this)
                 .style("fill", "steelblue")
                 .attr("r", radius * 2);
 
-            // Specify where to put label of text
+            
             svg.append("text")
                 .attr("id", "t" + d.x + "-" + d.y + "-" + i)
                 .attr("x", () => xScale(d.x) - 30)
@@ -629,12 +648,10 @@
         }
 
         function handleMouseOut(d, i) {
-            // Use D3 to select element, change color back to normal
             d3.select(this)
                 .style("fill", "black")
                 .attr("r", radius);
 
-            // Select text by id and then remove
             d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
         }
     }
