@@ -68,9 +68,9 @@
             <br><br><br>
             <p class='step__text'>
                 Let's look at what happens
-                with<br> <input type="number" id = "point_input" name="numObj" value="300" max="1000" min="2"> objects...<br>
+                with<br> <input type="number" id = "point_input" name="numObj" value="30" max="1000" min="2"> objects... (2-300)<br>
+                <button type="button" id="point_input_button">Update</button>
                 <div id = "counter"></div>
-                <button type="button" id="point_input_button">Click Me!</button>
             </p>
         </div>
         <div class='step' data-step='4'>
@@ -241,7 +241,8 @@
                 .attr("cy", function (d) {
                     return y(d[1]);
                 })
-                .attr("r", 40);
+                .attr("r", 40)
+                .attr('fill','blue');
 
             searchFirst(g);
         }
@@ -368,7 +369,7 @@
 
         var x = d3.scaleLinear()
             .domain([-50, 50])//d3.max(data, function(d) { return d[0]; })])
-            .range([ 0, width ]);
+            .range([ 0, 2*width/3 ]);
 
         var y = d3.scaleLinear()
             .domain([-50, 50])//d3.max(data, function(d) { return d[1]; })])
@@ -413,7 +414,7 @@
         var height = chart.node().getBoundingClientRect().height;
         var x = d3.scaleLinear()
             .domain([-50, 50])//d3.max(data, function(d) { return d[0]; })])
-            .range([ 0, width ]);
+            .range([ 0, width/2]);
 
         var y = d3.scaleLinear()
             .domain([-50, 50])//d3.max(data, function(d) { return d[1]; })])
@@ -456,6 +457,7 @@
             .attr("cx", function (d) {return x(d[0]); } )
             .attr("cy", function (d) {return y(d[1]); } );
 
+        drawTimeComplexityGraph(g, 30);
         await sleep(2000);
         for(let i = 0; i < num_points; i++){
             step.select("#counter").html("<br>Particles Checked: " + (i+1));
@@ -475,6 +477,7 @@
                 .duration(30)
                 .attr("d", line(other_array));
         }
+
     }
     function updatePartCount(){
         let svg = chart
@@ -483,8 +486,33 @@
         let g = main.select(".data_points");
         let val = d3.select("#point_input").node().value;
         console.log(val);
-        num_points = val;
+        num_points = val -2;
         drawLines(g, new Array(num_points));
+        drawTimeComplexityGraph(g, num_points);
+    }
+
+    function drawTimeComplexityGraph(g, numPoints){
+        let data = new Array(numPoints)
+        for(var i = 0; i < numPoints; i++){
+            data[i] = i;
+        }
+        var width = chart.node().getBoundingClientRect().width;
+        var height = chart.node().getBoundingClientRect().height;
+        var x = d3.scaleLinear()
+            .domain([0, numPoints])//d3.max(data, function(d) { return d[0]; })])
+            .range([width/2, width ]);
+
+        var y = d3.scaleLinear()
+            .domain([0, numPoints*numPoints + 10])//d3.max(data, function(d) { return d[1]; })])
+            .range([ height, 0 ]);
+        let line = d3.line()
+            .x(function(d) { return x(d[0]); })
+            .y(function(d) { console.log(d[0] * d[0]);return y(d[0] * d[0]); });
+        g.selectAll("path1")
+            .attr("d", line(data))
+            .style("stroke", "gray")
+            .style("stroke-width", "2")
+            .style("opacity", "1");
     }
 
     async function makeQuad(g){
