@@ -123,6 +123,11 @@ p, h1 {
 .step.is-active {
     opacity: 1;
 }
+
+.step.visited {
+    opacity: 1;
+}
+
 .step__title {
     text-align: left;
     /*padding: 1rem;*/
@@ -154,7 +159,7 @@ p, h1 {
     stroke-width: 5px;
 }
 
-.node {
+.node, .node2 {
     fill: none;
     stroke: #ccc;
     shape-rendering: crispEdges;
