@@ -122,7 +122,7 @@
 
     var num_points = 30;
 
-    var big_array = new Array(num_points);
+    var big_array = d3.range(num_points).map(function() { return [Math.random() * 2048, Math.random() * 2048]; });
     var small_array = new Array(2);
     // initialize the scrollama
     var scroller = scrollama();
@@ -269,12 +269,13 @@
 
         let temp_data = [[6, 5], [12, 5]];
         let temp_path_data = [[6, 5], [6, 5]];
+
         let line = d3.line()
             .x(function(d) { return x(d[0]); })
             .y(function(d) { return y(d[1]); });
 
-        g.selectAll(".scatter-dots")
-            .data(temp_data);
+        g.selectAll(".scatter-dots").data(temp_data);
+
         g.selectAll(".scatter-dots").transition()
             .duration(1000)
             .attr("cx", function (d) {
@@ -303,9 +304,7 @@
     async function collideTwoDots(g){
         small_array[0] = [11, 5];
         small_array[1] = [12, 5];
-        for(var i = 0; i < num_points; i++){
-            big_array[i] = [Math.random()*100 - 50, Math.random()*100 - 50];
-        }
+
         var width = chart.node().getBoundingClientRect().width;
         var height = chart.node().getBoundingClientRect().height;
 
@@ -367,11 +366,11 @@
         var height = chart.node().getBoundingClientRect().height;
 
         var x = d3.scaleLinear()
-            .domain([-50, 50])//d3.max(data, function(d) { return d[0]; })])
+            .domain([0, 2048])//d3.max(data, function(d) { return d[0]; })])
             .range([ 0, width ]);
 
         var y = d3.scaleLinear()
-            .domain([-50, 50])//d3.max(data, function(d) { return d[1]; })])
+            .domain([0, 2048])//d3.max(data, function(d) { return d[1]; })])
             .range([ height, 0 ]);
 
         var dots = g.selectAll(".scatter-dots")
@@ -397,27 +396,26 @@
 
         await sleep(2000);
 
-
-
         drawLines(g, big_array)
     }
 
     async function drawLines(g, new_array){
-        for(var i = 0; i < num_points; i++){
-            new_array[i] = [Math.random()*100 - 50, Math.random()*100 - 50];
-        }
 
-        small_array[0] = [Math.random()*100 - 50, Math.random()*100 - 50];
-        small_array[1] = [Math.random()*100 - 50, Math.random()*100 - 50];
+        new_array = d3.range(num_points).map(function() { return [Math.random() * 2048, Math.random() * 2048]; });
+
+        small_array[0] = [Math.random()*2048, Math.random()*2048];
+        small_array[1] = [Math.random()*2048, Math.random()*2048];
+
         var width = chart.node().getBoundingClientRect().width;
         var height = chart.node().getBoundingClientRect().height;
+
         var x = d3.scaleLinear()
-            .domain([-50, 50])//d3.max(data, function(d) { return d[0]; })])
+            .domain([0, 2048])//d3.max(data, function(d) { return d[0]; })])
             .range([ 0, width ]);
 
         var y = d3.scaleLinear()
-            .domain([-50, 50])//d3.max(data, function(d) { return d[1]; })])
-            .range([ height, 0 ]);
+            .domain([0, 2048])//d3.max(data, function(d) { return d[1]; })])
+            .range([ 0, height ]);
         let line = d3.line()
             .x(function(d) { return x(d[0]); })
             .y(function(d) { return y(d[1]); });
@@ -436,7 +434,9 @@
         dots2 = g.selectAll(".many-scatter-dots")
             .data(new_array)
             .style("fill", "black");
+
         dots2.exit().remove();
+
         dots2.enter().append("circle")
             .attr("class", "many-scatter-dots")
             .attr("id", function (d, i) {return "point_" + i;})
@@ -475,10 +475,12 @@
                 .duration(30)
                 .attr("d", line(other_array));
         }
+
+        big_array = new_array;
     }
+
     function updatePartCount(){
-        let svg = chart
-            .select('svg');
+        let svg = chart.select('svg');
         let main = svg.select(".main");
         let g = main.select(".data_points");
         let val = d3.select("#point_input").node().value;
@@ -489,61 +491,41 @@
 
     async function makeQuad(g){
 
-        let svg = chart.select("svg"),
-            width = svg.attr("width"),
-            height = svg.attr("height");
+        var svg = chart.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
 
-        var random = Math.random,
-            data = d3.range(100).map(function() { return [random() * width, random() * height]; });
+        small_array.forEach((function (elem) {
+            big_array.push(elem);
+        }));
 
-        let quadtree = d3.quadtree()
-            .extent([[1, 0], [width, height]])
-            .addAll(data);
-
-        var brush = d3.brush()
-            .on("brush", brushed);
+        var quadtree = d3.quadtree()
+            .extent([[0, 0], [2048, 2048]])
+            .addAll(big_array);
 
         svg.selectAll(".node")
             .data(nodes(quadtree))
-            .enter().append("rect")
+            .enter()
+            .append("rect")
+            .transition()
+            .duration(1000)
             .attr("class", "node")
-            .attr("x", function(d) { return d.x0; })
-            .attr("y", function(d) { return d.y0; })
-            .attr("width", function(d) { return d.y1 - d.y0; })
-            .attr("height", function(d) { return d.x1 - d.x0; });
+            .attr("x", function(d) { return (d.x0/2048)*width; })
+            .attr("y", function(d) { return (d.y0/2048)*height; })
+            .attr("width", function(d) { return ((width/2048)*d.y1) - ((width/2048)*d.y0); })
+            .attr("height", function(d) { return ((height/2048)*d.x1) - ((height/2048)*d.x0); });
 
-        function brushed() {
-            var extent = d3.event.selection;
-            point.each(function(d) { d.scanned = d.selected = false; });
-            search(quadtree, extent[0][0], extent[0][1], extent[1][0], extent[1][1]);
-            point.classed("point--scanned", function(d) { return d.scanned; });
-            point.classed("point--selected", function(d) { return d.selected; });
-        }
-
-        // Find the nodes within the specified rectangle.
-        function search(quadtree, x0, y0, x3, y3) {
-            quadtree.visit(function(node, x1, y1, x2, y2) {
-                if (!node.length) {
-                    do {
-                        var d = node.data;
-                        d.scanned = true;
-                        d.selected = (d[0] >= x0) && (d[0] < x3) && (d[1] >= y0) && (d[1] < y3);
-                    } while (node === node.next);
-                }
-                return x1 >= x3 || y1 >= y3 || x2 < x0 || y2 < y0;
-            });
-        }
-
-        var point = svg.selectAll(".point")
-            .data(data)
-            .enter().append("circle")
-            .attr("class", "point")
-            .attr("cx", function(d) { return d[0]; })
-            .attr("cy", function(d) { return d[1]; })
-            .attr("r", 2);
+        // svg.selectAll(".point")
+        //     .data(big_array)
+        //     .enter()
+        //     .append("circle")
+        //     .attr("class", "point")
+        //     .attr("cx", function(d) { return (d[0]/2048)*width; })
+        //     .attr("cy", function(d) { return (d[1]/2048)*height; })
+        //     .attr("r", 2);
 
         function nodes(quadtree) {
-            let nodes = [];
+            var nodes = [];
             quadtree.visit(function(node, x0, y0, x1, y1) {
                 node.x0 = x0, node.y0 = y0;
                 node.x1 = x1, node.y1 = y1;
@@ -553,18 +535,7 @@
         }
     }
 
-    function handleContainerEnter(response) {
-        // response = { direction }
-        // sticky the graphic (old school)
-        graphic.classed('is-fixed', true);
-        graphic.classed('is-bottom', false);
-    }
-    function handleContainerExit(response) {
-        // response = { direction }
-        // un-sticky the graphic, and pin to top/bottom of container
-        graphic.classed('is-fixed', false);
-        graphic.classed('is-bottom', response.direction === 'down');
-
+    function build_tree(){
         let w = window.innerWidth,
             h = window.innerHeight,
             margin = { top: 40, right: 20, bottom: 20, left: 40 },
@@ -574,7 +545,7 @@
             .attr("width", w)
             .attr("height", h);
 
-        var dataset = [
+        let dataset = [
             { x: 100, y: 110 },
             { x: 83, y: 43 },
             { x: 92, y: 28 },
@@ -668,6 +639,22 @@
             d3.select("#t" + d.x + "-" + d.y + "-" + i).remove();  // Remove text location
         }
     }
+
+    function handleContainerEnter(response) {
+        // response = { direction }
+        // sticky the graphic (old school)
+        graphic.classed('is-fixed', true);
+        graphic.classed('is-bottom', false);
+    }
+    function handleContainerExit(response) {
+        // response = { direction }
+        // un-sticky the graphic, and pin to top/bottom of container
+        graphic.classed('is-fixed', false);
+        graphic.classed('is-bottom', response.direction === 'down');
+
+        build_tree();
+    }
+
     function init() {
         // 1. force a resize on load to ensure proper dimensions are sent to scrollama
         handleResize();
