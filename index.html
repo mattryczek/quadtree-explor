@@ -548,16 +548,16 @@
         let line = d3.line()
             .x(function(d) { return x(d); })
             .y(function(d) { return y(d * d); });
-    //    let holder = g.append("g")
-      //      .attr("class", "holder");
-        g.append("path")
+        let holder = g.append("g")
+            .attr("class", "holder");
+        holder.append("path")
             .attr("class", "time_graph")
             .attr("d", line(data))
             .style("stroke", "black")
             .style("stroke-width", "2")
             .style("fill", "none")
             .style("opacity", "1");
-        g.append("circle")
+        holder.append("circle")
             .data(point)
             .attr("class", "demo-point")
             .attr("cx", function (d) {
@@ -570,20 +570,20 @@
             .style("opacity", 1)
             .style("fill", "#076819");
 
-        g.append("g")
+        holder.append("g")
             .attr("class", "xaxis")
             .attr("transform", "translate(" + -margin.left + " ," + (height - margin.bottom) + ")")
             .call(d3.axisBottom().scale(x).ticks(5)); // Create an axis component with d3.axisBottom
-        g.append("g")
+        holder.append("g")
             .attr("class", "yaxis")
             .attr("transform", "translate(" + 2*width/3 + ",0)")
             .call(d3.axisLeft().scale(y).ticks(5))
-        g.append("text")
+        holder.append("text")
             .attr("transform", "translate("+ ((2*width/3) - (6 * margin.left)) + "," + (height/2) + ") rotate(-90) ")
             .attr("dy", "1em")
             .style("text-anchor", "middle")
             .text("Comparisons");
-        g.append("text")
+        holder.append("text")
             .attr("transform", "translate("+ ((5*width/6)) + "," + (height-20) + ")")
             .attr("dy", "1em")
             .style("text-anchor", "middle")
@@ -604,8 +604,8 @@
             .domain([0, highPoint * highPoint])//d3.max(data, function(d) { return d[1]; })])
             .range([ height - margin.bottom, margin.top ]);
      //   let holder = g.select("holder");
-        let dot = g.select(".demo-point").data(point);
-        console.log(point);
+        let dot = d3.select(".demo-point").data(point);
+        
         dot.transition()
             .attr("cx", x(point))
             .attr("cy", y(point*point));
