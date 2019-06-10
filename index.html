@@ -632,7 +632,7 @@
 
     function updateTimeComplexityGraph(g, point){
         console.log("Updating the point");
-        let margin = {left: 10, right: 10, bottom: 55, top: 10};
+        let margin = {left: 10, right: 10, bottom: 65, top: 10};
         let highPoint = max_points;
         var width = chart.node().getBoundingClientRect().width;
         var height = chart.node().getBoundingClientRect().height;
@@ -730,7 +730,6 @@
             .attr("fill", "orange")
             .attr("width", 15)
             .attr("height", 8);
-
     }
 
     function nodes(quadtree) {
