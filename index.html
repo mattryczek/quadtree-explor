@@ -17,15 +17,15 @@
     <br>
     <div class="intro__info">
     <p class='intro__text'>
-        Most video games rely on some kind of collision detection algorithm in order to implement
-        essential gameplay mechanics. Regardless of the chosen algorithm, the problem with existing
-        implementation is scale. In many video games, large environments can contain thousands of objects that
-        the player can interact with. Currently, the best way to limit computational cost is to decrease the
-        number of times the algorithm is run. In order to do this, developers utilize quadtrees,
+        Most video games rely on collision detection algorithms in order to implement certain
+        essential gameplay mechanics. Regardless of the chosen algorithm, implementation problems always arise as
+        scale increases. In many video games, large environments can contain thousands of objects that
+        the player can interact with. Currently the best way to limit computational cost is to decrease the
+        number of times the algorithm is run. In order to do this, developers can utilize quadtrees:
         a data structure that eliminates checks for impropable collisions. Scroll to explore an illustrated
         breakdown of quadtrees and their use.
         <br><br>
-        In addition to aiding collision detection, quadtrees have a variety of use cases. They are also seen
+        In addition to aiding collision detection, quadtrees have a variety of other use cases. They are used
         in image processing (such as compressing images), spatial indexing, and mesh generation to assist
         rendering physical simulations such as fluid dynamics.
     </p>
@@ -47,15 +47,16 @@
             <br>
             <p class='step__text'>
                 Game engines must be able to update a game's state depending on object interaction
-                (or lack thereof), requiring frequent checks for collisions. In this case, we see two 
+                (or lack thereof), requiring frequent checks for collisions. In this case we see two
                 objects that don't collide. We use our detection algorithm (shown
                 here as a line drawn between objects) to verify this.
             </p>
         </div>
         <div class='step' data-step='2'>
             <p class='step__text'>
-                Now, we see two objects that do collide. In this case, detection is trivial, 
-                as we're only dealing with two objects. </p> 
+                Now, we see two objects that do collide. In this case detection is trivial,
+                as we're only dealing with two objects. Checking whether a collision occurred just
+                requires picking a point and seeing if it intersects the other.</p>
 
         </div>
         <div class='step' data-step='3'>
@@ -63,10 +64,10 @@
             <br>
             <p class="step__text">
                 When we have a large number of objects, checking for collisions
-                using our current method becomes much more expensive. Users expect
-                fluid gameplay, free of constant delays. Although the detection algorithm
-                may be completed quickly, performing this computation for all pairs of objects
-                has a cost that increases exponentially with the number of objects.
+                using our current method becomes <em>much</em> more expensive. Users expect
+                fluid gameplay free of constant delays. Although the detection algorithm
+                may be completed quickly once pairs are found, performing this computation for
+                all pairs of objects has a cost that increases exponentially with the number of objects.
             </p>
             <br><br><br>
             <p class='step__text'>
@@ -83,7 +84,7 @@
             <p class='step__text'>
                 How can we cut down on object
                 comparisons? Consider the probability that two objects
-                collide. This probability is not uniform between all objects - some 
+                collide. This probability is not uniform between all objects - some
                 have a much lower chance of colliding than others. The use of quadtrees
                 relies on a simple intuition: objects that are near one another are more likely
                 to have collided. To check objects against their neighbors, we first have to 
@@ -98,15 +99,13 @@
             <br>
             <p class='step__text'>
                 After completing the partitioning step, we are ready to transform the initial 2D space into 
-                a quadtree. Each rectangle in the graph above becomes a node in the tree, with every node having up
-                to four children. A child can either represent another inner rectangle, or a single point. In the case of
+                a quadtree. Each rectangle in the graph above becomes a node in the tree, with every node having at most
+                four children. A child can either represent another inner rectangle, or a single point. In the case of
                 an inner rectangle, this node will have children of its own too.
                 <br><br>
                 The tree is built by recursively looking at the largest rectangle first, and then each of
                 the four quadrants inside of it. Once you
                 reach a rectangle that has no more inner rectangles, the points that lie here are leaves in the tree.
-                <br><br> 
-                Continue scrolling to see an example further detailing the drawing process.
             </p>
         </div>
         <div class='step' data-step='6'></div>
