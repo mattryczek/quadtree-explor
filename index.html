@@ -606,7 +606,7 @@
 
             dot.transition()
             .attr("cx", x(point))
-            .attr("cy", y(point * point))
+            .attr("cy", y(point * point));
         dot.exit().remove();
     }
 
