@@ -117,9 +117,13 @@
         <p class='step__title'>Building A Tree of Your Own</p>
         <br>
         <p class='step__text'>
-            Click inside the following rectangle to create your own arrangement of points in space, noting the 
-            x and y coordinates for each point. Once you've reached the desired layout, watch as the points transform
-            into a quadtree! <button class='build__btn'>Create the Quadtree!</button>
+            Click inside the space below to create your own arrangement of points. Rectangles representing the
+            quadtree partitions will be automatically drawn around a point to show how data is stored in the tree.
+
+            <br /><br />
+
+            <strong>Note:</strong> Not all points need a new partition allocated for them!
+            As long as a point is the only one in its rectangle, no update is necessary.
         </p>
     </div>
     <svg id='outro' class="quadtree">
@@ -134,6 +138,25 @@
 <script src='https://cdnjs.cloudflare.com/ajax/libs/scrollama/1.4.1/scrollama.min.js'></script>
 
 <script>
+
+    const demo_data = [
+        [1839, 1205],
+        [784, 377],
+        [1350, 1351],
+        [1646, 368],
+        [1427, 897],
+        [906, 1283],
+        [1020, 2034],
+        [769, 1408],
+        [357, 2027],
+        [119, 414],
+        [1477, 1039],
+        [562, 1518],
+        [731, 1235],
+        [283, 2040],
+        [64, 895]
+    ];
+
     let container = d3.select('#scroll'),
         graphic = container.select('.scroll__graphic'),
         chart = graphic.select('.chart'),
@@ -144,11 +167,9 @@
     let num_points = 30;
     let max_points = 300;
 
-    let big_array = d3.range(num_points).map(function() { return [Math.random() * 2048, Math.random() * 2048]; }),
+    let big_array = d3.range(num_points).map( () => [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)]),
         small_array = new Array(2),
         scroller = scrollama();
-    var tooltip = d3.select("body").append("div")
-        .attr("class", "tooltip").style("opacity", 0);
 
     d3.select("#point_input_button")
         .on("click", function() {
@@ -236,7 +257,8 @@
                 makeQuad(g);
                 break;
             case 4:
-                // drawTree();
+                drawTree(g);
+                break;
         }
     }
 
@@ -397,8 +419,10 @@
             y = d3.scaleLinear()
                 .domain([0, 2048])
                 .range([50, height]);
-        small_array[0] = [Math.random() * 2048, Math.random() * 2048]
-        small_array[1] = [Math.random() * 2048, Math.random() * 2048]
+
+        small_array[0] = [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)];
+        small_array[1] = [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)];
+
         let dots = g.selectAll(".scatter-dots")
             .data(small_array),
 
@@ -426,10 +450,12 @@
 
     async function drawLines(g, new_array){
 
-        new_array = d3.range(num_points).map(function() { return [Math.random() * 2048, Math.random() * 2048]; });
+        new_array = d3.range(num_points).map( () => [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)]);
 
-        small_array[0] = [Math.random()*2048, Math.random()*2048];
-        small_array[1] = [Math.random()*2048, Math.random()*2048];
+        console.log(new_array);
+
+        small_array[0] = [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)];
+        small_array[1] = [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)];
 
         let width = chart.node().getBoundingClientRect().width,
             height = chart.node().getBoundingClientRect().height,
@@ -550,6 +576,7 @@
             .y(function(d) { return y(d * d); });
         let holder = g.append("g")
             .attr("class", "holder");
+
         holder.append("path")
             .attr("class", "time_graph")
             .attr("d", line(data))
@@ -557,6 +584,7 @@
             .style("stroke-width", "2")
             .style("fill", "none")
             .style("opacity", "1");
+
         holder.append("circle")
             .data(point)
             .attr("class", "demo-point")
@@ -616,7 +644,7 @@
         var y = d3.scaleLinear()
             .domain([0, highPoint * highPoint])//d3.max(data, function(d) { return d[1]; })])
             .range([ height - margin.bottom, margin.top ]);
-     //   let holder = g.select("holder");
+
         let dot = d3.select(".demo-point").data(point);
         
         dot.transition()
@@ -661,7 +689,6 @@
             data[i] = i;
         }
 
-        console.log(data);
         var x = d3.scaleLinear()
             .domain([0, highPoint])//d3.max(data, function(d) { return d[0]; })])
             .range([2*width/3 + margin.left, width - margin.right]);
@@ -722,8 +749,65 @@
         return nodes;
     }
 
+    async function drawTree(g){
+
+        let svg = chart.select("svg"),
+            width = +svg.attr("width"),
+            height = +svg.attr("height");
+
+        let half_width = width/2;
+
+        let quadtree = d3.quadtree()
+            .extent([[0, 0], [2048, 2048]])
+            .addAll(demo_data);
+
+        let dots2 = g.selectAll(".many-scatter-dots")
+            .data(demo_data),
+
+            x = d3.scaleLinear()
+                .domain([0, 2048])
+                .range([ 0, half_width]),
+
+            y = d3.scaleLinear()
+                .domain([0, 2048])
+                .range([ 0, height]);
+
+        d3.selectAll(".node").remove();
+        d3.selectAll(".scatter-dots").remove();
+        d3.selectAll(".holder").remove();
+        dots2.exit().remove();
+
+        dots2.transition()
+            .duration(1000)
+            .attr("cx", d => x(d[0]))
+            .attr("cy", d => y(d[1]))
+            .attr("r", 4);
+
+        svg.selectAll(".node")
+            .data(nodes(quadtree))
+            .enter()
+            .append("rect")
+            .transition()
+            .duration(1000)
+            .attr("class", "node")
+            .attr("x", d => (d.x0/2048)*half_width)
+            .attr("y", d => (d.y0/2048)*height)
+            .attr("width", d => ((half_width/2048)*d.y1) - ((half_width/2048)*d.y0))
+            .attr("height", d => ((height/2048)*d.x1) - ((height/2048)*d.x0));
+
+        await sleep(1500);
+
+        d3.select(".data_points")
+            .append("image")
+            .attr('xlink:href', './tree.png')
+            .attr('width', half_width)
+            .attr('height', height)
+            .attr('x', half_width + 69);
+
+    }
+
     function build_tree(){
-        let width = window.innerWidth/2 - 100,
+        let width = window.innerWidth - 100,
             height = window.innerHeight - 300,
             radius = 4,
 
