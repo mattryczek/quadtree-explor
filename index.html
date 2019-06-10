@@ -127,9 +127,6 @@
     </div>
     <svg id='outro' class="quadtree">
     </svg>
-    
-    <!-- <svg class="anim">
-    </svg>-->
 </section>
 
 <script src='https://d3js.org/d3.v4.min.js'></script>
@@ -167,7 +164,8 @@
     let max_points = 300;
 
     let big_array = d3.range(num_points).map( () => [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)]),
-        small_array = new Array(2),
+        small_array = [[2, 5], [12, 5]],
+        other_array = [[2, 5], [2, 5]],
         scroller = scrollama();
 
     d3.select("#point_input_button")
@@ -262,18 +260,15 @@
     }
 
     async function precedent(width, height, g){
-        small_array = [[2, 5], [12, 5]];
-        let other_array = [[2, 5], [2, 5]];
-
-        var x = d3.scaleLinear()
+        let x = d3.scaleLinear()
             .domain([0, 20])
-            .range([0, width]);
+            .range([0, width]),
 
-        var y = d3.scaleLinear()
+            y = d3.scaleLinear()
             .domain([0, 10])
-            .range([height, 0]);
+            .range([height, 0]),
 
-        let line = d3.line()
+            line = d3.line()
             .x(d => x(d[0]))
             .y(d => y(d[1]));
 
@@ -451,8 +446,6 @@
 
         new_array = d3.range(num_points).map( () => [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)]);
 
-        console.log(new_array);
-
         small_array[0] = [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)];
         small_array[1] = [Math.floor(Math.random() * 2048), Math.floor(Math.random() * 2048)];
 
@@ -560,7 +553,7 @@
         for(let i = 0; i < highPoint; i++){
             data[i] = i;
         }
-        console.log(data);
+
         var width = chart.node().getBoundingClientRect().width;
         var height = chart.node().getBoundingClientRect().height;
         var x = d3.scaleLinear()
@@ -631,7 +624,6 @@
     }
 
     function updateTimeComplexityGraph(g, point){
-        console.log("Updating the point");
         let margin = {left: 10, right: 10, bottom: 65, top: 10};
         let highPoint = max_points;
         var width = chart.node().getBoundingClientRect().width;
@@ -697,10 +689,10 @@
             .range([ height - margin.bottom, margin.top ]);
         let logline = d3.line()
             .x(function(d) { return x(d) - margin.left; })
-            .y(function(d, i) { console.log(Math.log(d)); return  d === 0? y(0) : y(Math.log(d)); });
+            .y(function(d, i) { return  d === 0? y(0) : y(Math.log(d)); });
         let linline = d3.line()
             .x(function(d) { return x(d) - margin.left; })
-            .y(function(d, i) { console.log(Math.log(d)); return  d === 0? y(0) : y(d); });
+            .y(function(d, i) { return  d === 0? y(0) : y(d); });
 
         await sleep(1000);
         let holder = d3.select(".holder");
@@ -903,7 +895,7 @@
             text: '.scroll__text',
             step: '.scroll__text .step',
             offset: 0.3,
-            //once: true
+            once: true
         })
             .onStepEnter(handleStepEnter)
             .onContainerEnter(handleContainerEnter)
