@@ -529,7 +529,7 @@
 
     function drawTimeComplexityGraph(g, point){
         point = [[point, point * point]];
-        let margin = {left: 10, right: 10, bottom: 35, top: 10};
+        let margin = {left: 10, right: 10, bottom: 65, top: 10};
         let highPoint = max_points;
         let data = new Array(highPoint);
         for(let i = 0; i < highPoint; i++){
@@ -584,15 +584,28 @@
             .style("text-anchor", "middle")
             .text("Comparisons");
         holder.append("text")
-            .attr("transform", "translate("+ ((5*width/6)) + "," + (height-20) + ")")
+            .attr("transform", "translate("+ ((5*width/6)) + "," + (height-50) + ")")
             .attr("dy", "1em")
             .style("text-anchor", "middle")
             .text("Objects");
+        let text = holder.append("text")
+            .attr("transform", "translate("+ ((5*width/6) - 20) + "," + (height-30) + ")")
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .style("font-size", "12")
+            .text("Exhaustive Search")
+        holder.append("rect")
+            .attr("x",  (5*width/6) + 30)
+            .attr('y', (height-25))
+            .attr("fill", "black")
+            .attr("width", 15)
+            .attr("height", 8);
+
     }
 
     function updateTimeComplexityGraph(g, point){
         console.log("Updating the point");
-        let margin = {left: 10, right: 10, bottom: 35, top: 10};
+        let margin = {left: 10, right: 10, bottom: 55, top: 10};
         let highPoint = max_points;
         var width = chart.node().getBoundingClientRect().width;
         var height = chart.node().getBoundingClientRect().height;
@@ -641,7 +654,7 @@
             .attr("height", d => ((height/2048)*d.x1) - ((height/2048)*d.x0));
 
 
-        let margin = {left: 10, right: 10, bottom: 35, top: 10};
+        let margin = {left: 10, right: 10, bottom: 65, top: 10};
         let highPoint = max_points;
         let data = new Array(highPoint);
         for(let i = 0; i < highPoint; i++){
@@ -664,7 +677,8 @@
             .y(function(d, i) { console.log(Math.log(d)); return  d === 0? y(0) : y(d); });
 
         await sleep(1000);
-        g.append("path")
+        let holder = d3.select(".holder");
+        holder.append("path")
             .attr("class", "log_graph")
             .attr("d", logline(data))
             .style("stroke", "orange")
@@ -678,6 +692,18 @@
         d3.select(".time_graph").transition().duration(1000)
                     .attr("d", linline(data));
         d3.select(".demo-point").remove();
+        holder.append("text")
+            .attr("transform", "translate("+ ((5*width/6) - 20) + "," + (height-20) + ")")
+            .attr("dy", "1em")
+            .style("text-anchor", "middle")
+            .style("font-size", "12")
+            .text("Quad Tree Search")
+        holder.append("rect")
+            .attr("x",  (5*width/6) + 30)
+            .attr('y', (height-15))
+            .attr("fill", "orange")
+            .attr("width", 15)
+            .attr("height", 8);
 
     }
 
