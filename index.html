@@ -546,7 +546,7 @@
             .domain([0, highPoint * highPoint])//d3.max(data, function(d) { return d[1]; })])
             .range([ height - margin.bottom, margin.top ]);
         let line = d3.line()
-            .x(function(d) { return x(d); })
+            .x(function(d) { return x(d) - margin.left; })
             .y(function(d) { return y(d * d); });
         let holder = g.append("g")
             .attr("class", "holder");
@@ -561,7 +561,7 @@
             .data(point)
             .attr("class", "demo-point")
             .attr("cx", function (d) {
-                return x(d[0])
+                return x(d[0]) - margin.left;
             })
             .attr("cy", function (d) {
                 return y(d[1])
@@ -607,7 +607,7 @@
         let dot = d3.select(".demo-point").data(point);
         
         dot.transition()
-            .attr("cx", x(point))
+            .attr("cx", x(point) - margin.left)
             .attr("cy", y(point*point));
         dot.exit().remove();
     }
@@ -654,19 +654,30 @@
             .range([2*width/3 + margin.left, width - margin.right]);
 
         var y = d3.scaleLinear()
-            .domain([0, highPoint * highPoint])//d3.max(data, function(d) { return d[1]; })])
+            .domain([0, highPoint/2 ])//d3.max(data, function(d) { return d[1]; })])
             .range([ height - margin.bottom, margin.top ]);
-        let line = d3.line()
-            .x(function(d) { return x(d); })
-            .y(function(d, i) { console.log(Math.log(d)); return  y(d); });
+        let logline = d3.line()
+            .x(function(d) { return x(d) - margin.left; })
+            .y(function(d, i) { console.log(Math.log(d)); return  d === 0? y(0) : y(Math.log(d)); });
+        let linline = d3.line()
+            .x(function(d) { return x(d) - margin.left; })
+            .y(function(d, i) { console.log(Math.log(d)); return  d === 0? y(0) : y(d); });
 
+        await sleep(1000);
         g.append("path")
             .attr("class", "log_graph")
-            .attr("d", line(data))
+            .attr("d", logline(data))
             .style("stroke", "orange")
             .style("stroke-width", "4")
             .style("fill", "none")
             .style("opacity", "1");
+
+        d3.select(".yaxis").transition().duration(1000)
+            .call(d3.axisLeft().scale(y).ticks(5)); // Create an axis component with d3.axisBottom
+
+        d3.select(".time_graph").transition().duration(1000)
+                    .attr("d", linline(data));
+        d3.select(".demo-point").remove();
 
     }
 
